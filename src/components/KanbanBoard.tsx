@@ -90,12 +90,14 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                     <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2 min-h-[100px]">
                       {colTasks.map((task, index) => (
                         <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(provided, snapshot) => (
+                          {(provided, snapshot) => {
+                            const urgency = getTaskUrgency(task.data_fim, task.status);
+                            return (
                             <Card
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`cursor-grab active:cursor-grabbing ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : ""}`}
+                              className={`cursor-grab active:cursor-grabbing ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : ""} ${urgency.borderClass}`}
                             >
                               <CardHeader className="p-3 pb-1">
                                 <div className="flex items-start gap-1">

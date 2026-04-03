@@ -40,7 +40,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
       projeto_id: projetoId,
       nome: data.nome,
       descricao: data.descricao || null,
-      responsavel: data.responsavel || null,
+      responsavel: data.responsaveis.length > 0 ? data.responsaveis : null,
       data_inicio: data.data_inicio || null,
       data_fim: data.data_fim || null,
       status: data.status,
@@ -54,10 +54,16 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
       projeto_id: projetoId,
       nome: data.nome,
       descricao: data.descricao || null,
-      responsavel: data.responsavel || null,
+      responsavel: data.responsaveis.length > 0 ? data.responsaveis : null,
       data_inicio: data.data_inicio || null,
       data_fim: data.data_fim || null,
     }, { onSuccess: () => { toast.success("Tarefa atualizada!"); setEditingTask(null); } });
+  };
+
+  const formatResponsaveis = (responsavel: string | string[] | null) => {
+    if (!responsavel) return null;
+    if (Array.isArray(responsavel)) return responsavel.join(", ");
+    return responsavel;
   };
 
   if (isLoading) return <div className="text-muted-foreground">Carregando tarefas...</div>;
@@ -101,7 +107,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                 </div>
                               </CardHeader>
                               <CardContent className="p-3 pt-0 text-xs text-muted-foreground space-y-1">
-                                {task.responsavel && <div>👤 {task.responsavel}</div>}
+                                {formatResponsaveis(task.responsavel) && <div>👤 {formatResponsaveis(task.responsavel)}</div>}
                                 {task.data_inicio && <div>📅 {task.data_inicio}{task.data_fim ? ` → ${task.data_fim}` : ""}</div>}
                               </CardContent>
                             </Card>

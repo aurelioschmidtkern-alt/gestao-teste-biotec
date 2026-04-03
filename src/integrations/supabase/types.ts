@@ -112,7 +112,7 @@ export type Database = {
           id: string
           nome: string
           projeto_id: string
-          responsavel: string | null
+          responsavel: string[] | null
           status: string
         }
         Insert: {
@@ -123,7 +123,7 @@ export type Database = {
           id?: string
           nome: string
           projeto_id: string
-          responsavel?: string | null
+          responsavel?: string[] | null
           status?: string
         }
         Update: {
@@ -134,7 +134,7 @@ export type Database = {
           id?: string
           nome?: string
           projeto_id?: string
-          responsavel?: string | null
+          responsavel?: string[] | null
           status?: string
         }
         Relationships: [

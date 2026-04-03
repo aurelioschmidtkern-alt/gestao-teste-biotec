@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useActiveUsers } from "@/hooks/useActiveUsers";
 import type { Projeto } from "@/hooks/useProjects";
 
 interface ProjectFormProps {
@@ -17,11 +18,12 @@ export function ProjectForm({ open, onOpenChange, onSubmit, initial }: ProjectFo
   const [nome, setNome] = useState(initial?.nome ?? "");
   const [status, setStatus] = useState(initial?.status ?? "Ativo");
   const [responsavel, setResponsavel] = useState(initial?.responsavel ?? "");
+  const { data: users = [] } = useActiveUsers();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) return;
-    onSubmit({ nome: nome.trim(), status, responsavel: responsavel.trim() });
+    onSubmit({ nome: nome.trim(), status, responsavel });
     if (!initial) { setNome(""); setResponsavel(""); setStatus("Ativo"); }
     onOpenChange(false);
   };
@@ -50,7 +52,15 @@ export function ProjectForm({ open, onOpenChange, onSubmit, initial }: ProjectFo
           </div>
           <div>
             <Label htmlFor="responsavel">Responsável</Label>
-            <Input id="responsavel" value={responsavel} onChange={e => setResponsavel(e.target.value)} />
+            <Select value={responsavel || "__none__"} onValueChange={v => setResponsavel(v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem responsável</SelectItem>
+                {users.map(u => (
+                  <SelectItem key={u.user_id} value={u.nome}>{u.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button type="submit" className="w-full">{initial ? "Salvar" : "Criar Projeto"}</Button>
         </form>

@@ -23,7 +23,7 @@ export function UserForm({ open, onOpenChange, onSubmit, initial }: UserFormProp
     setNome(initial?.nome ?? "");
     setEmail(initial?.email ?? "");
     setPassword("");
-    setPerfil(initial?.perfil ?? "Usuário");
+    setPerfil(initial?.perfil ?? "Funcionario");
   }, [initial]);
 
   const handleSubmit = (e: React.FormEvent) => {

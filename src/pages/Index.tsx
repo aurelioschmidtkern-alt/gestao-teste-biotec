@@ -20,6 +20,7 @@ export default function Index() {
   const { data: projects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
   const deleteProject = useDeleteProject();
+  const { signOut } = useAuth();
   const [formOpen, setFormOpen] = useState(false);
 
   return (

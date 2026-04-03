@@ -163,44 +163,48 @@ export default function MyWork() {
                     const urgency = getTaskUrgency(task.data_fim, task.status);
                     return (
                       <Card key={task.id} className={`shadow-sm border-border/50 hover:shadow-md transition-all duration-200 border-l-[3px] ${urgency.borderClass}`}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-36 shrink-0">
-                              <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
-                                <SelectTrigger className="h-8 text-xs rounded-lg">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="A Fazer">A Fazer</SelectItem>
-                                  <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-                                  <SelectItem value="Concluído">Concluído</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{task.nome}</p>
-                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                                <FolderOpen className="h-3 w-3" /> {task.projeto_nome}
-                              </p>
-                            </div>
-                            {task.responsavel && task.responsavel.length > 0 && (
-                              <div className="hidden md:flex gap-1 shrink-0">
-                                {task.responsavel.map((r) => (
-                                  <Badge key={r} variant="outline" className="text-xs rounded-full">{r}</Badge>
-                                ))}
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                            <div className="flex items-center gap-3 sm:gap-4">
+                              <div className="w-28 sm:w-36 shrink-0">
+                                <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
+                                  <SelectTrigger className="h-8 text-xs rounded-lg">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="A Fazer">A Fazer</SelectItem>
+                                    <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                                    <SelectItem value="Concluído">Concluído</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
-                            )}
-                            {task.prioridade && (
-                              <Badge className={`text-xs shrink-0 rounded-full ${PRIORITY_COLORS[task.prioridade] || ""}`}>
-                                {task.prioridade}
-                              </Badge>
-                            )}
-                            {task.data_inicio && (
-                              <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{task.data_inicio}</span>
-                            )}
-                            {urgency.label && (
-                              <Badge variant="outline" className="text-xs shrink-0 rounded-full">{urgency.label}</Badge>
-                            )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{task.nome}</p>
+                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                  <FolderOpen className="h-3 w-3" /> {task.projeto_nome}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pl-0 sm:pl-0 sm:shrink-0">
+                              {task.responsavel && task.responsavel.length > 0 && (
+                                <div className="hidden md:flex gap-1 shrink-0">
+                                  {task.responsavel.map((r) => (
+                                    <Badge key={r} variant="outline" className="text-xs rounded-full">{r}</Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {task.prioridade && (
+                                <Badge className={`text-xs shrink-0 rounded-full ${PRIORITY_COLORS[task.prioridade] || ""}`}>
+                                  {task.prioridade}
+                                </Badge>
+                              )}
+                              {task.data_inicio && (
+                                <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{task.data_inicio}</span>
+                              )}
+                              {urgency.label && (
+                                <Badge variant="outline" className="text-xs shrink-0 rounded-full">{urgency.label}</Badge>
+                              )}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>

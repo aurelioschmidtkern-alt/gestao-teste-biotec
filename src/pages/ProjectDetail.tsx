@@ -48,13 +48,13 @@ export default function ProjectDetail() {
       transition={{ duration: 0.4 }}
     >
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9 hover:bg-muted/50">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9 hover:bg-muted/50 shrink-0 self-start">
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{projeto.nome}</h1>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{projeto.nome}</h1>
             <Badge className={`rounded-full ${STATUS_COLORS[projeto.status] || ""}`}>{projeto.status}</Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -63,7 +63,7 @@ export default function ProjectDetail() {
           </p>
         </div>
         {canEditProject && (
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shadow-sm">
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shadow-sm w-full sm:w-auto">
             <Pencil className="h-4 w-4 mr-1" /> Editar
           </Button>
         )}

@@ -40,7 +40,7 @@ export function useUpdateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }),
+    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }); qc.invalidateQueries({ queryKey: ["my-tasks"] }); },
   });
 }
 

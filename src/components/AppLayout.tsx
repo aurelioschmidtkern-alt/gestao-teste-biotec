@@ -9,7 +9,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center justify-between border-b px-4 shrink-0">
-            <SidebarTrigger />
+            <SidebarTrigger className="h-9 w-9" />
             <UserMenu />
           </header>
           <main className="flex-1 overflow-auto">

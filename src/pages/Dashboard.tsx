@@ -50,7 +50,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
@@ -60,11 +60,26 @@ export default function Dashboard() {
               <p className="text-muted-foreground">Visão geral do sistema</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <Select
+              value={selectedProjectId || "all"}
+              onValueChange={(v) => setSelectedProjectId(v === "all" ? null : v)}
+            >
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Todos os projetos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os projetos</SelectItem>
+                {(allData?.projects || []).map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {isAdmin && (
               <Button variant="outline" onClick={() => navigate("/")}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
             )}
             <UserMenu />
+          </div>
           </div>
         </div>
 

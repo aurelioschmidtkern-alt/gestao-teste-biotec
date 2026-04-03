@@ -27,9 +27,12 @@ const COST_COLORS = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { data, isLoading } = useDashboard();
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const { data, isLoading } = useDashboard(selectedProjectId);
   const { profile } = useProfile();
   const isAdmin = profile?.perfil === "Administrador";
+  // Fetch all projects for the filter dropdown (unfiltered)
+  const { data: allData } = useDashboard(null);
 
   if (isLoading || !data) {
     return (

@@ -1,28 +1,25 @@
 
 
-## Categorias Customizáveis nos Custos
+## Atualizar status do projeto automaticamente ao concluir todas as tarefas
 
 ### Resumo
-Permitir que o usuário crie novas categorias de custo além das pré-definidas (Software, Mão de obra, Marketing, Outros), diretamente no formulário de custos.
+Quando todas as tarefas de um projeto tiverem status "Concluído", o projeto será automaticamente atualizado para status "Concluído". Quando pelo menos uma tarefa não estiver concluída, o projeto volta para "Ativo".
 
 ### Abordagem
-Sem alteração de banco de dados. As categorias já são armazenadas como texto livre na coluna `categoria`. Basta ajustar o formulário para combinar as categorias padrão com as categorias já usadas no projeto, e adicionar uma opção "Nova categoria" que exibe um campo de texto.
+Adicionar lógica no `onSuccess` do `useUpdateTask` (e no `useDeleteTask`): após atualizar/excluir uma tarefa, buscar todas as tarefas do projeto e verificar se todas estão concluídas. Se sim, atualizar o projeto para "Concluído". Se não, garantir que o projeto esteja "Ativo".
 
 ### Mudanças
 
-**`src/components/CostForm.tsx`**:
-- Receber a lista de custos existentes via nova prop `existingCategories: string[]`
-- Combinar categorias padrão com categorias já usadas (sem duplicatas)
-- Adicionar opção "Nova categoria..." no Select
-- Quando selecionada, exibir um Input para digitar o nome da nova categoria
-- Ao digitar, usar esse valor como categoria
-
-**`src/components/CostsList.tsx`**:
-- Extrair categorias únicas dos custos existentes
-- Passar como prop `existingCategories` para o `CostForm`
+**`src/hooks/useTasks.ts`**:
+- Criar função auxiliar `checkAndUpdateProjectStatus(projetoId)` que:
+  1. Busca todas as tarefas do projeto
+  2. Se houver tarefas e todas tiverem `status === "Concluído"`, atualiza `projetos.status` para "Concluído"
+  3. Caso contrário, atualiza para "Ativo" (se estava "Concluído")
+- Chamar essa função no `onSuccess` de `useUpdateTask` e `useDeleteTask`
+- Invalidar query `["projetos"]` após a atualização
 
 ### O que NÃO muda
-- Tabela `custos` no banco
-- Hooks de custos
-- Demais telas e funcionalidades
+- Interface visual dos projetos, tarefas, custos
+- Kanban, Meu Trabalho, login, usuários
+- Estrutura do banco de dados (coluna `status` em `projetos` já existe)
 

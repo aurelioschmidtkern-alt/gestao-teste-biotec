@@ -15,7 +15,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Respon
 const STATUS_COLORS: Record<string, string> = {
   Ativo: "bg-green-100 text-green-800",
   Pausado: "bg-yellow-100 text-yellow-800",
-  Concluído: "bg-blue-100 text-blue-800",
+  Concluído: "bg-gray-100 text-gray-800",
 };
 
 const CHART_COLORS = ["hsl(220, 14%, 60%)", "hsl(217, 91%, 60%)", "hsl(142, 71%, 45%)"];

@@ -7,6 +7,7 @@ import { Plus, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { TaskForm } from "./TaskForm";
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type Tarefa } from "@/hooks/useTasks";
 import { toast } from "sonner";
+import { getTaskUrgency } from "@/lib/taskUrgency";
 
 const COLUMNS = ["A Fazer", "Em Andamento", "Concluído"] as const;
 const COLUMN_COLORS: Record<string, string> = {

@@ -26,6 +26,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
   const [responsaveis, setResponsaveis] = useState<string[]>((initial?.responsavel as string[] | null) ?? []);
   const [dataInicio, setDataInicio] = useState(initial?.data_inicio ?? "");
   const [dataFim, setDataFim] = useState(initial?.data_fim ?? "");
+  const [prioridade, setPrioridade] = useState(initial?.prioridade ?? "");
   const { data: users = [] } = useActiveUsers();
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
     setResponsaveis((initial?.responsavel as string[] | null) ?? []);
     setDataInicio(initial?.data_inicio ?? "");
     setDataFim(initial?.data_fim ?? "");
+    setPrioridade(initial?.prioridade ?? "");
   }, [initial]);
 
   const toggleUser = (nome: string) => {

@@ -4,6 +4,28 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 
 export type Tarefa = Tables<"tarefas">;
 
+async function checkAndUpdateProjectStatus(projetoId: string) {
+  const { data: tasks } = await supabase
+    .from("tarefas")
+    .select("status")
+    .eq("projeto_id", projetoId);
+
+  if (!tasks || tasks.length === 0) return;
+
+  const allDone = tasks.every(t => t.status === "Concluído");
+  const newStatus = allDone ? "Concluído" : "Ativo";
+
+  const { data: project } = await supabase
+    .from("projetos")
+    .select("status")
+    .eq("id", projetoId)
+    .single();
+
+  if (project && ((allDone && project.status !== "Concluído") || (!allDone && project.status === "Concluído"))) {
+    await supabase.from("projetos").update({ status: newStatus }).eq("id", projetoId);
+  }
+}
+
 export function useTasks(projetoId: string) {
   return useQuery({
     queryKey: ["tarefas", projetoId],
@@ -40,7 +62,12 @@ export function useUpdateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }); qc.invalidateQueries({ queryKey: ["my-tasks"] }); },
+    onSuccess: async (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["my-tasks"] });
+      await checkAndUpdateProjectStatus(vars.projeto_id);
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+    },
   });
 }
 
@@ -51,6 +78,11 @@ export function useDeleteTask() {
       const { error } = await supabase.from("tarefas").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }); qc.invalidateQueries({ queryKey: ["my-tasks"] }); },
+    onSuccess: async (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["my-tasks"] });
+      await checkAndUpdateProjectStatus(vars.projeto_id);
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+    },
   });
 }

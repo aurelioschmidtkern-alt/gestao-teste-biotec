@@ -14,7 +14,112 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      custos: {
+        Row: {
+          categoria: string
+          created_at: string
+          data: string
+          id: string
+          projeto_id: string
+          tipo_custo: string
+          valor: number
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          data: string
+          id?: string
+          projeto_id: string
+          tipo_custo: string
+          valor: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          data?: string
+          id?: string
+          projeto_id?: string
+          tipo_custo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projetos: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          responsavel: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          responsavel?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          responsavel?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      tarefas: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          projeto_id: string
+          responsavel: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          projeto_id: string
+          responsavel?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          projeto_id?: string
+          responsavel?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

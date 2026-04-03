@@ -11,6 +11,7 @@ import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import { TaskForm } from "@/components/TaskForm";
 import { toast } from "sonner";
+import { UserMenu } from "@/components/UserMenu";
 import { getTaskUrgency } from "@/lib/taskUrgency";
 import {
   isToday,
@@ -123,9 +124,12 @@ export default function MyWork() {
               <p className="text-muted-foreground">Todas as suas tarefas em um só lugar</p>
             </div>
           </div>
-          <Button onClick={openNewTask}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Elemento
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={openNewTask}>
+              <Plus className="h-4 w-4 mr-2" /> Novo Elemento
+            </Button>
+            <UserMenu />
+          </div>
         </div>
 
         {isLoading ? (

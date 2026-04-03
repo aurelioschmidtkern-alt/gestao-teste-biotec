@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FolderOpen, Trash2, LogOut, Users, ClipboardList } from "lucide-react";
+import { Plus, FolderOpen, Trash2, Users, ClipboardList } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
-import { useAuth } from "@/hooks/useAuth";
 import { ProjectForm } from "@/components/ProjectForm";
+import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -20,7 +20,6 @@ export default function Index() {
   const { data: projects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
   const deleteProject = useDeleteProject();
-  const { signOut } = useAuth();
   const [formOpen, setFormOpen] = useState(false);
 
   return (
@@ -36,7 +35,7 @@ export default function Index() {
             <Button variant="outline" onClick={() => navigate("/meu-trabalho")}><ClipboardList className="h-4 w-4 mr-2" /> Meu Trabalho</Button>
             <Button variant="outline" onClick={() => navigate("/usuarios")}><Users className="h-4 w-4 mr-2" /> Usuários</Button>
             <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
-            <Button variant="outline" onClick={() => signOut().then(() => navigate("/auth"))}><LogOut className="h-4 w-4" /></Button>
+            <UserMenu />
           </div>
         </div>
 

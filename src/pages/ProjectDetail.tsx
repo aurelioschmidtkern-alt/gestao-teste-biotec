@@ -10,6 +10,7 @@ import { KanbanBoard } from "@/components/KanbanBoard";
 import { CostsList } from "@/components/CostsList";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useUpdateProject } from "@/hooks/useProjects";
+import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -53,9 +54,12 @@ export default function ProjectDetail() {
               Criado em {new Date(projeto.created_at).toLocaleDateString("pt-BR")}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-            <Pencil className="h-4 w-4 mr-1" /> Editar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 mr-1" /> Editar
+            </Button>
+            <UserMenu />
+          </div>
         </div>
 
         {/* Tabs */}

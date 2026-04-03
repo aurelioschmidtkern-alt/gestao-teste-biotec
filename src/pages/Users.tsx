@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Pencil, ArrowLeft, UserCheck, UserX } from "lucide-react";
 import { UserForm } from "@/components/UserForm";
 import { useUsers, useCreateUser, useUpdateUser, type UserProfile } from "@/hooks/useUsers";
+import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 export default function Users() {
@@ -56,9 +57,12 @@ export default function Users() {
             <h1 className="text-3xl font-bold">Usuários</h1>
             <p className="text-muted-foreground">Gerencie os usuários do sistema</p>
           </div>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Usuário
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Novo Usuário
+            </Button>
+            <UserMenu />
+          </div>
         </div>
 
         {error ? (

@@ -85,11 +85,12 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                             <Card
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`${snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : ""}`}
+                              {...provided.dragHandleProps}
+                              className={`cursor-grab active:cursor-grabbing ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : ""}`}
                             >
                               <CardHeader className="p-3 pb-1">
                                 <div className="flex items-start gap-1">
-                                  <span {...provided.dragHandleProps}><GripVertical className="h-4 w-4 text-muted-foreground mt-0.5" /></span>
+                                  <GripVertical className="h-4 w-4 text-muted-foreground mt-0.5" />
                                   <CardTitle className="text-sm flex-1">{task.nome}</CardTitle>
                                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingTask(task)}>
                                     <Pencil className="h-3 w-3" />

@@ -1,49 +1,34 @@
 
 
-## Dashboard Avançado — Plano de Implementação
+## Filtro por Projeto no Dashboard
 
 ### Resumo
-Criar uma página `/dashboard` com painel executivo contendo cards de resumo, gráficos (recharts já disponível), lista de projetos em andamento, tarefas críticas e ações rápidas. Filtro por perfil: admin vê tudo, usuário comum vê apenas seus projetos/tarefas.
+Adicionar um select/dropdown no header do Dashboard que permite filtrar todos os dados (métricas, gráficos, listas) por um projeto específico. Opção padrão "Todos os projetos".
 
-### Arquivos
+### Mudanças
 
-**Novo: `src/hooks/useDashboard.ts`**
-- Hook que busca dados agregados: todos os projetos, todas as tarefas, todos os custos
-- Calcula métricas: projetos ativos, tarefas em andamento/concluídas/atrasadas, total de custos
-- Filtra por perfil do usuário (admin = global, usuário = apenas projetos onde é responsável ou tarefas atribuídas)
+**`src/pages/Dashboard.tsx`**
+- Adicionar estado local `selectedProjectId` (string | null, default null)
+- No header, adicionar um `Select` com a lista de projetos vindos de `data.projects` + opção "Todos os projetos"
+- Após desestruturar `data`, aplicar filtro local:
+  - Se `selectedProjectId` estiver setado, filtrar `tasks` e `costs` por `projeto_id`, e `projects` pelo `id`
+  - Recalcular `metrics`, `tasksByStatus`, `tasksByDeadline`, `costsByCategory` e `criticalTasks` com os dados filtrados
+- Mover a lógica de cálculo de métricas/gráficos do hook para uma função utilitária reutilizável, ou duplicar o cálculo inline no componente após o filtro
 
-**Novo: `src/pages/Dashboard.tsx`**
-Estrutura vertical:
+**Abordagem mais limpa**: Passar `selectedProjectId` para o hook `useDashboard` como parâmetro, e aplicar o filtro lá dentro antes de calcular as métricas.
 
-1. **Cards de resumo** (topo, grid 5 colunas): Projetos ativos, Tarefas em andamento, Tarefas concluídas, Tarefas atrasadas (vermelho), Total de custos (R$)
+**`src/hooks/useDashboard.ts`**
+- Aceitar parâmetro opcional `projectId?: string | null`
+- Se definido, filtrar `projects`, `tasks` e `costs` por esse projeto antes de calcular métricas
+- Adicionar `projectId` ao `queryKey`
 
-2. **Gráficos** (grid 3 colunas):
-   - Donut: Tarefas por status (A Fazer / Em Andamento / Concluído) — cores consistentes com Kanban
-   - Barras: Tarefas por prazo (No prazo verde / Atenção amarelo / Atrasadas vermelho) — reutiliza lógica de `taskUrgency.ts`
-   - Barras: Custos por categoria — valores em R$
-
-3. **Projetos em andamento** (tabela): nome, status, responsável, qtd tarefas, badge de progresso
-
-4. **Tarefas críticas** (lista, max 10): atrasadas e vencendo hoje/amanhã, ordenadas por urgência. Exibe nome, projeto, responsáveis, data, status
-
-5. **Ações rápidas** (botões): Novo Projeto, Nova Tarefa. Admin vê todos, usuário comum não vê "Novo Projeto"
-
-- Usa `recharts` (já instalado) com `ChartContainer`, `ChartTooltip`, `ChartTooltipContent` do componente `ui/chart`
-- Header com navegação de volta e `UserMenu`
-
-**Editar: `src/App.tsx`**
-- Adicionar rota `/dashboard` protegida
-
-**Editar: `src/pages/Index.tsx`**
-- Adicionar botão "Dashboard" no header que navega para `/dashboard`
-
-### Regras de perfil
-- `useProfile()` retorna `perfil` do usuário
-- Admin/Coordenador: dados globais
-- Usuário: filtra projetos onde `responsavel` inclui seu nome, e tarefas onde `responsavel[]` inclui seu nome
+### Interface
+- Select posicionado no header, entre o título e os botões de ação
+- Opções: "Todos os projetos" + lista dos projetos do usuário
+- Ao mudar, os dados do dashboard atualizam automaticamente via React Query
 
 ### O que NÃO muda
-- Kanban, Meu Trabalho, custos, login, usuários
-- Banco de dados (usa dados existentes)
-- Hooks existentes (apenas cria novo `useDashboard`)
+- Estrutura visual do dashboard
+- Banco de dados
+- Demais telas
 

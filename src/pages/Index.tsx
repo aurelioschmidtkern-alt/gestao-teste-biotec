@@ -54,9 +54,11 @@ export default function Index() {
           <h1 className="text-3xl font-bold">Projetos</h1>
           <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Projeto
-        </Button>
+        {canCreateProject && (
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Projeto
+          </Button>
+        )}
       </div>
 
       {isLoading ? (

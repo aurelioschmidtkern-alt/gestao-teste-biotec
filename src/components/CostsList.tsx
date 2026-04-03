@@ -101,8 +101,8 @@ export function CostsList({ projetoId }: { projetoId: string }) {
         </CardContent>
       </Card>
 
-      <CostForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
-      <CostForm open={!!editingCost} onOpenChange={open => { if (!open) setEditingCost(null); }} onSubmit={handleEdit} initial={editingCost} />
+      <CostForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} existingCategories={existingCategories} />
+      <CostForm open={!!editingCost} onOpenChange={open => { if (!open) setEditingCost(null); }} onSubmit={handleEdit} initial={editingCost} existingCategories={existingCategories} />
     </div>
   );
 }

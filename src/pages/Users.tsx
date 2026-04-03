@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Pencil, ArrowLeft, UserCheck, UserX } from "lucide-react";
 import { UserForm } from "@/components/UserForm";
 import { useUsers, useCreateUser, useUpdateUser, type UserProfile } from "@/hooks/useUsers";
+import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 export default function Users() {

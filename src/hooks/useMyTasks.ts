@@ -45,6 +45,7 @@ export function useMyTasks() {
       return (data || [])
         .filter((t: any) => {
           if (!t.responsavel) return false;
+          if (t.status === "Concluído") return false;
           const resp = Array.isArray(t.responsavel) ? t.responsavel : [t.responsavel];
           return resp.includes(userName);
         })

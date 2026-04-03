@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FolderOpen, Trash2 } from "lucide-react";
+import { Plus, FolderOpen, Trash2, LogOut } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 import { ProjectForm } from "@/components/ProjectForm";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ export default function Index() {
   const { data: projects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
   const deleteProject = useDeleteProject();
+  const { signOut } = useAuth();
   const [formOpen, setFormOpen] = useState(false);
 
   return (
@@ -30,7 +32,10 @@ export default function Index() {
             <h1 className="text-3xl font-bold">Projetos</h1>
             <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
           </div>
-          <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
+            <Button variant="outline" onClick={() => signOut().then(() => navigate("/auth"))}><LogOut className="h-4 w-4" /></Button>
+          </div>
         </div>
 
         {/* Projects Grid */}

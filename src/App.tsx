@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AppLayout } from "@/components/AppLayout";
 import Index from "./pages/Index";
 import ProjectDetail from "./pages/ProjectDetail";
 import Users from "./pages/Users";
@@ -22,11 +23,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/projeto/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-          <Route path="/usuarios" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-          <Route path="/meu-trabalho" element={<ProtectedRoute><MyWork /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><AppLayout><Index /></AppLayout></ProtectedRoute>} />
+          <Route path="/projeto/:id" element={<ProtectedRoute><AppLayout><ProjectDetail /></AppLayout></ProtectedRoute>} />
+          <Route path="/usuarios" element={<ProtectedRoute><AppLayout><Users /></AppLayout></ProtectedRoute>} />
+          <Route path="/meu-trabalho" element={<ProtectedRoute><AppLayout><MyWork /></AppLayout></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

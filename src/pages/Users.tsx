@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, ArrowLeft, UserCheck, UserX } from "lucide-react";
+import { Plus, Pencil, UserCheck, UserX } from "lucide-react";
 import { UserForm } from "@/components/UserForm";
 import { useUsers, useCreateUser, useUpdateUser, type UserProfile } from "@/hooks/useUsers";
-import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 export default function Users() {
-  const navigate = useNavigate();
   const { data: users = [], isLoading, error } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
@@ -47,75 +44,67 @@ export default function Users() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">Usuários</h1>
-            <p className="text-muted-foreground">Gerencie os usuários do sistema</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setFormOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Novo Usuário
-            </Button>
-            <UserMenu />
-          </div>
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Usuários</h1>
+          <p className="text-muted-foreground">Gerencie os usuários do sistema</p>
         </div>
-
-        {error ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              <p>{(error as Error).message}</p>
-            </CardContent>
-          </Card>
-        ) : isLoading ? (
-          <div className="text-center text-muted-foreground py-12">Carregando usuários...</div>
-        ) : (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Lista de Usuários ({users.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Perfil</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="w-24"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map(u => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.nome}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell><Badge variant={u.perfil === "Administrador" ? "default" : "secondary"}>{u.perfil}</Badge></TableCell>
-                      <TableCell><Badge variant={u.status === "Ativo" ? "default" : "outline"}>{u.status}</Badge></TableCell>
-                      <TableCell>{new Date(u.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingUser(u)}>
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => toggleStatus(u)}>
-                            {u.status === "Ativo" ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+        <Button onClick={() => setFormOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" /> Novo Usuário
+        </Button>
       </div>
+
+      {error ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <p>{(error as Error).message}</p>
+          </CardContent>
+        </Card>
+      ) : isLoading ? (
+        <div className="text-center text-muted-foreground py-12">Carregando usuários...</div>
+      ) : (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Lista de Usuários ({users.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Perfil</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data</TableHead>
+                  <TableHead className="w-24"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map(u => (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">{u.nome}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell><Badge variant={u.perfil === "Administrador" ? "default" : "secondary"}>{u.perfil}</Badge></TableCell>
+                    <TableCell><Badge variant={u.status === "Ativo" ? "default" : "outline"}>{u.status}</Badge></TableCell>
+                    <TableCell>{new Date(u.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingUser(u)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => toggleStatus(u)}>
+                          {u.status === "Ativo" ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       <UserForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
       <UserForm open={!!editingUser} onOpenChange={open => { if (!open) setEditingUser(null); }} onSubmit={handleEdit} initial={editingUser} />

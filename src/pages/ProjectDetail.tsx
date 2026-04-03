@@ -10,7 +10,6 @@ import { KanbanBoard } from "@/components/KanbanBoard";
 import { CostsList } from "@/components/CostsList";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useUpdateProject } from "@/hooks/useProjects";
-import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -35,47 +34,42 @@ export default function ProjectDetail() {
     enabled: !!id,
   });
 
-  if (isLoading) return <div className="flex items-center justify-center min-h-screen text-muted-foreground">Carregando...</div>;
-  if (!projeto) return <div className="flex items-center justify-center min-h-screen text-muted-foreground">Projeto não encontrado</div>;
+  if (isLoading) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Carregando...</div>;
+  if (!projeto) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Projeto não encontrado</div>;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-5 w-5" /></Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">{projeto.nome}</h1>
-              <Badge className={STATUS_COLORS[projeto.status] || ""}>{projeto.status}</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {projeto.responsavel && `Responsável: ${projeto.responsavel} · `}
-              Criado em {new Date(projeto.created_at).toLocaleDateString("pt-BR")}
-            </p>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-5 w-5" /></Button>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{projeto.nome}</h1>
+            <Badge className={STATUS_COLORS[projeto.status] || ""}>{projeto.status}</Badge>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-4 w-4 mr-1" /> Editar
-            </Button>
-            <UserMenu />
-          </div>
+          <p className="text-sm text-muted-foreground">
+            {projeto.responsavel && `Responsável: ${projeto.responsavel} · `}
+            Criado em {new Date(projeto.created_at).toLocaleDateString("pt-BR")}
+          </p>
         </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="kanban">
-          <TabsList>
-            <TabsTrigger value="kanban">Kanban</TabsTrigger>
-            <TabsTrigger value="custos">Custos</TabsTrigger>
-          </TabsList>
-          <TabsContent value="kanban" className="mt-4">
-            <KanbanBoard projetoId={projeto.id} />
-          </TabsContent>
-          <TabsContent value="custos" className="mt-4">
-            <CostsList projetoId={projeto.id} />
-          </TabsContent>
-        </Tabs>
+        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+          <Pencil className="h-4 w-4 mr-1" /> Editar
+        </Button>
       </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="kanban">
+        <TabsList>
+          <TabsTrigger value="kanban">Kanban</TabsTrigger>
+          <TabsTrigger value="custos">Custos</TabsTrigger>
+        </TabsList>
+        <TabsContent value="kanban" className="mt-4">
+          <KanbanBoard projetoId={projeto.id} />
+        </TabsContent>
+        <TabsContent value="custos" className="mt-4">
+          <CostsList projetoId={projeto.id} />
+        </TabsContent>
+      </Tabs>
 
       <ProjectForm
         open={editOpen}

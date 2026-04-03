@@ -74,9 +74,9 @@ export default function Users() {
       animate="animate"
       variants={{ animate: { transition: { staggerChildren: 0.06 } } }}
     >
-      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
+      <motion.div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" variants={fadeInUp}>
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Usuários</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Usuários</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie os usuários do sistema</p>
         </div>
         <Button onClick={() => setFormOpen(true)} className="shadow-sm">

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, FolderOpen, Trash2, Users, ClipboardList } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
-import { useAuth } from "@/hooks/useAuth";
 import { ProjectForm } from "@/components/ProjectForm";
 import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";

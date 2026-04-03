@@ -125,7 +125,7 @@ export default function Dashboard() {
                 "A Fazer": { label: "A Fazer", color: CHART_COLORS[0] },
                 "Em Andamento": { label: "Em Andamento", color: CHART_COLORS[1] },
                 "Concluído": { label: "Concluído", color: CHART_COLORS[2] },
-              }} className="h-[220px] w-full mx-auto [&_.recharts-wrapper]:!mx-auto">
+              }} className="h-[220px] w-full !aspect-auto">
                 <PieChart>
                   <Pie data={tasksByStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80}>
                     {tasksByStatus.map((entry, i) => (

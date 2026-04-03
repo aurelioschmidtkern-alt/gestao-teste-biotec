@@ -124,9 +124,12 @@ export default function MyWork() {
               <p className="text-muted-foreground">Todas as suas tarefas em um só lugar</p>
             </div>
           </div>
-          <Button onClick={openNewTask}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Elemento
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={openNewTask}>
+              <Plus className="h-4 w-4 mr-2" /> Novo Elemento
+            </Button>
+            <UserMenu />
+          </div>
         </div>
 
         {isLoading ? (

@@ -3,16 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, DollarSign, Hash } from "lucide-react";
+import { Plus, Trash2, Pencil, DollarSign, Hash } from "lucide-react";
 import { CostForm } from "./CostForm";
-import { useCosts, useCreateCost, useDeleteCost, formatCurrency } from "@/hooks/useCosts";
+import { useCosts, useCreateCost, useUpdateCost, useDeleteCost, formatCurrency, type Custo } from "@/hooks/useCosts";
 import { toast } from "sonner";
 
 export function CostsList({ projetoId }: { projetoId: string }) {
   const { data: costs = [], isLoading } = useCosts(projetoId);
   const createCost = useCreateCost();
+  const updateCost = useUpdateCost();
   const deleteCost = useDeleteCost();
   const [formOpen, setFormOpen] = useState(false);
+  const [editingCost, setEditingCost] = useState<Custo | null>(null);
 
   const total = costs.reduce((sum, c) => sum + Number(c.valor), 0);
 
@@ -22,11 +24,17 @@ export function CostsList({ projetoId }: { projetoId: string }) {
     });
   };
 
+  const handleEdit = (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => {
+    if (!editingCost) return;
+    updateCost.mutate({ id: editingCost.id, projeto_id: projetoId, ...data }, {
+      onSuccess: () => { toast.success("Custo atualizado!"); setEditingCost(null); },
+    });
+  };
+
   if (isLoading) return <div className="text-muted-foreground">Carregando custos...</div>;
 
   return (
     <div className="space-y-4">
-      {/* Resumo Financeiro */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
@@ -48,7 +56,6 @@ export function CostsList({ projetoId }: { projetoId: string }) {
         </Card>
       </div>
 
-      {/* Lista */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-base">Custos</CardTitle>
@@ -65,7 +72,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Data</TableHead>
-                  <TableHead className="w-10"></TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -76,9 +83,14 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                     <TableCell className="font-medium">{formatCurrency(Number(c.valor))}</TableCell>
                     <TableCell>{new Date(c.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingCost(c)}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -89,6 +101,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
       </Card>
 
       <CostForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
+      <CostForm open={!!editingCost} onOpenChange={open => { if (!open) setEditingCost(null); }} onSubmit={handleEdit} initial={editingCost} />
     </div>
   );
 }

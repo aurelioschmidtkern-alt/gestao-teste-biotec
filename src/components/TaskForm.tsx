@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,14 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
   const [responsavel, setResponsavel] = useState(initial?.responsavel ?? "");
   const [dataInicio, setDataInicio] = useState(initial?.data_inicio ?? "");
   const [dataFim, setDataFim] = useState(initial?.data_fim ?? "");
+
+  useEffect(() => {
+    setNome(initial?.nome ?? "");
+    setDescricao(initial?.descricao ?? "");
+    setResponsavel(initial?.responsavel ?? "");
+    setDataInicio(initial?.data_inicio ?? "");
+    setDataFim(initial?.data_fim ?? "");
+  }, [initial]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

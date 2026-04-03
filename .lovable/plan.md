@@ -1,61 +1,51 @@
 
 
-## Menu Lateral (Sidebar) — Plano de Implementação
+## Ajuste na Dashboard — Filtro e Separação por Status de Projeto
 
 ### Resumo
-Criar uma sidebar colapsável com navegação agrupada, regras de visibilidade por perfil, e integrar com o layout existente usando `SidebarProvider` do shadcn. O `UserMenu` será mantido no topo direito. Todas as páginas internas passam a usar um layout compartilhado com sidebar.
+Quando "Todos os projetos" estiver selecionado, a seção de projetos será dividida em 3 grupos por status (Ativos, Pausados, Concluídos), ocultando seções vazias. Quando um projeto específico for selecionado, exibir visão individual com destaque de status. Concluído passa a usar cinza em vez de azul.
 
-### Arquivos
+### Mudanças
 
-**Novo: `src/components/AppSidebar.tsx`**
-- Sidebar com `collapsible="icon"`
-- Grupos:
-  - **Visão Geral**: Dashboard (`BarChart3`), Meu Trabalho (`ClipboardList`)
-  - **Gestão**: Projetos (`FolderOpen`), Tarefas (link para Meu Trabalho ou projetos)
-  - **Administração**: Usuários (`Users`) — visível apenas se `perfil === "Administrador"`
-- Usa `NavLink` para destacar rota ativa
-- Busca perfil via `useProfile()` para controlar visibilidade
+**`src/pages/Dashboard.tsx`**
+- Substituir a seção "Projetos em Andamento" por lógica condicional:
+  - **Se `selectedProjectId` é null** (todos): renderizar até 3 seções — "Projetos Ativos" (verde), "Projetos Pausados" (amarelo), "Projetos Concluídos" (cinza). Cada seção lista projetos daquele status com a mesma estrutura visual atual (card clicável com nome, responsável, badge de tarefas). Ocultar seção se vazia.
+  - **Se projeto específico selecionado**: exibir card destacado com nome do projeto, status em badge colorido, responsável, e contagem de tarefas por status
+- Atualizar `STATUS_COLORS.Concluído` de azul para cinza (`bg-gray-100 text-gray-800`)
 
-**Novo: `src/components/AppLayout.tsx`**
-- Layout wrapper com `SidebarProvider` + `AppSidebar` + área de conteúdo
-- Header fixo no topo com `SidebarTrigger` (esquerda) e `UserMenu` (direita)
-- `children` renderizados na área principal
-- Substitui a repetição de header em cada página
+**`src/hooks/useDashboard.ts`**
+- Nenhuma alteração necessária (já retorna todos os projetos com status, e já filtra por `projectId`)
 
-**Editar: `src/App.tsx`**
-- Envolver as rotas protegidas com `AppLayout`
+### Estrutura visual (todos os projetos)
 
-**Editar: `src/pages/Index.tsx`, `MyWork.tsx`, `Dashboard.tsx`, `Users.tsx`, `ProjectDetail.tsx`**
-- Remover headers individuais (botões de navegação, `UserMenu`, `ArrowLeft`)
-- Manter apenas o conteúdo específico de cada página
-- O layout com sidebar e header agora vem do `AppLayout`
-
-### Regras de perfil
-- Administrador: vê todos os itens incluindo "Usuários"
-- Demais perfis: não veem "Usuários"
-- Itens de "Tarefas" e "Custos" não terão rota própria (já estão dentro de projetos), então o grupo "Gestão" terá apenas "Projetos"
-- O grupo "Financeiro > Custos" e "Sistema > Configurações" ficam para implementação futura (não existem como páginas independentes)
-
-### Estrutura final da sidebar
 ```text
-┌─────────────────┐
-│  Nome do Sistema │
-├─────────────────┤
-│ VISÃO GERAL     │
-│  📊 Dashboard   │
-│  📋 Meu Trabalho│
-├─────────────────┤
-│ GESTÃO          │
-│  📁 Projetos    │
-├─────────────────┤
-│ ADMINISTRAÇÃO   │
-│  👥 Usuários    │  ← só admin
-└─────────────────┘
+┌─────────────────────────────────┬─────────────────────────────────┐
+│ Projetos Ativos (verde)         │ Tarefas Críticas                │
+│  - Projeto A  [2/5 tarefas]    │  - Tarefa X [Atrasada 3 dias]   │
+│  - Projeto B  [0/3 tarefas]    │  - Tarefa Y [Vence hoje]        │
+├─────────────────────────────────┤                                 │
+│ Projetos Pausados (amarelo)     │                                 │
+│  - Projeto C  [1/4 tarefas]    │                                 │
+├─────────────────────────────────┤                                 │
+│ Projetos Concluídos (cinza)     │                                 │
+│  - Projeto D  [5/5 tarefas]    │                                 │
+└─────────────────────────────────┴─────────────────────────────────┘
+```
+
+### Estrutura visual (projeto específico)
+
+```text
+┌─────────────────────────────────┬─────────────────────────────────┐
+│ Projeto: Implantação CRM        │ Tarefas Críticas                │
+│ Status: [Ativo] (badge verde)   │  (filtradas pelo projeto)       │
+│ Responsável: João               │                                 │
+│ Tarefas: 2 A Fazer, 1 Em And.  │                                 │
+└─────────────────────────────────┴─────────────────────────────────┘
 ```
 
 ### O que NÃO muda
-- Funcionalidades existentes (Kanban, custos, tarefas, perfil)
+- Gráficos, cards de resumo, tarefas críticas
+- Hook `useDashboard`
 - Banco de dados
-- Hooks existentes
-- Tela de login/registro
+- Demais telas
 

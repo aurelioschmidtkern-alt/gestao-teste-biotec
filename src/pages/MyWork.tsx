@@ -11,6 +11,7 @@ import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import { TaskForm } from "@/components/TaskForm";
 import { toast } from "sonner";
+import { getTaskUrgency } from "@/lib/taskUrgency";
 import {
   isToday,
   isThisWeek,

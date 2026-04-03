@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FolderOpen, Trash2, Users, ClipboardList } from "lucide-react";
+import { Plus, FolderOpen, Trash2, Users, ClipboardList, BarChart3 } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
 import { ProjectForm } from "@/components/ProjectForm";
 import { UserMenu } from "@/components/UserMenu";
@@ -32,6 +32,7 @@ export default function Index() {
             <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/dashboard")}><BarChart3 className="h-4 w-4 mr-2" /> Dashboard</Button>
             <Button variant="outline" onClick={() => navigate("/meu-trabalho")}><ClipboardList className="h-4 w-4 mr-2" /> Meu Trabalho</Button>
             <Button variant="outline" onClick={() => navigate("/usuarios")}><Users className="h-4 w-4 mr-2" /> Usuários</Button>
             <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>

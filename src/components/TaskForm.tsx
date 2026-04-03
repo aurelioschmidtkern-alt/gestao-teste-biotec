@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,7 @@ import type { Tarefa } from "@/hooks/useTasks";
 interface TaskFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { nome: string; descricao: string; responsaveis: string[]; data_inicio: string; data_fim: string; status: string }) => void;
+  onSubmit: (data: { nome: string; descricao: string; responsaveis: string[]; data_inicio: string; data_fim: string; status: string; prioridade: string }) => void;
   initial?: Tarefa | null;
   defaultStatus?: string;
 }
@@ -26,6 +27,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
   const [responsaveis, setResponsaveis] = useState<string[]>((initial?.responsavel as string[] | null) ?? []);
   const [dataInicio, setDataInicio] = useState(initial?.data_inicio ?? "");
   const [dataFim, setDataFim] = useState(initial?.data_fim ?? "");
+  const [prioridade, setPrioridade] = useState(initial?.prioridade ?? "");
   const { data: users = [] } = useActiveUsers();
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
     setResponsaveis((initial?.responsavel as string[] | null) ?? []);
     setDataInicio(initial?.data_inicio ?? "");
     setDataFim(initial?.data_fim ?? "");
+    setPrioridade(initial?.prioridade ?? "");
   }, [initial]);
 
   const toggleUser = (nome: string) => {
@@ -56,8 +59,9 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
       data_inicio: dataInicio || "",
       data_fim: dataFim || "",
       status: initial?.status ?? defaultStatus,
+      prioridade: prioridade || "",
     });
-    if (!initial) { setNome(""); setDescricao(""); setResponsaveis([]); setDataInicio(""); setDataFim(""); }
+    if (!initial) { setNome(""); setDescricao(""); setResponsaveis([]); setDataInicio(""); setDataFim(""); setPrioridade(""); }
     onOpenChange(false);
   };
 
@@ -117,6 +121,19 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
               <Label>Data Fim</Label>
               <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
             </div>
+          </div>
+          <div>
+            <Label>Prioridade</Label>
+            <Select value={prioridade} onValueChange={setPrioridade}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Baixa">Baixa</SelectItem>
+                <SelectItem value="Média">Média</SelectItem>
+                <SelectItem value="Alta">Alta</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button type="submit" className="w-full">{initial ? "Salvar" : "Criar Tarefa"}</Button>
         </form>

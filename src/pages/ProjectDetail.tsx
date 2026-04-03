@@ -24,6 +24,7 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const updateProject = useUpdateProject();
   const [editOpen, setEditOpen] = useState(false);
+  const { canEditProject, canAccessCosts } = usePermissions();
 
   const { data: projeto, isLoading } = useQuery({
     queryKey: ["projeto", id],

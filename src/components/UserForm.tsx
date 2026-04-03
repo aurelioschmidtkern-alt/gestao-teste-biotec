@@ -17,7 +17,7 @@ export function UserForm({ open, onOpenChange, onSubmit, initial }: UserFormProp
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [perfil, setPerfil] = useState("Usuário");
+  const [perfil, setPerfil] = useState("Funcionario");
 
   useEffect(() => {
     setNome(initial?.nome ?? "");

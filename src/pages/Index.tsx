@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, FolderOpen, Trash2 } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
 import { ProjectForm } from "@/components/ProjectForm";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {

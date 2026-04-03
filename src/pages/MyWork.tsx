@@ -151,8 +151,10 @@ export default function MyWork() {
                     <Badge variant="secondary">{items.length}</Badge>
                   </div>
                   <div className="space-y-2">
-                    {items.map((task) => (
-                      <Card key={task.id} className="hover:shadow-sm transition-shadow">
+                    {items.map((task) => {
+                      const urgency = getTaskUrgency(task.data_fim, task.status);
+                      return (
+                      <Card key={task.id} className={`hover:shadow-sm transition-shadow ${urgency.borderClass}`}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             <div className="w-36 shrink-0">

@@ -7,6 +7,7 @@ import { Plus, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { TaskForm } from "./TaskForm";
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type Tarefa } from "@/hooks/useTasks";
 import { toast } from "sonner";
+import { getTaskUrgency } from "@/lib/taskUrgency";
 
 const COLUMNS = ["A Fazer", "Em Andamento", "Concluído"] as const;
 const COLUMN_COLORS: Record<string, string> = {
@@ -89,12 +90,14 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                     <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2 min-h-[100px]">
                       {colTasks.map((task, index) => (
                         <Draggable key={task.id} draggableId={task.id} index={index}>
-                          {(provided, snapshot) => (
+                          {(provided, snapshot) => {
+                            const urgency = getTaskUrgency(task.data_fim, task.status);
+                            return (
                             <Card
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`cursor-grab active:cursor-grabbing ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : ""}`}
+                              className={`cursor-grab active:cursor-grabbing ${snapshot.isDragging ? "shadow-lg ring-2 ring-primary" : ""} ${urgency.borderClass}`}
                             >
                               <CardHeader className="p-3 pb-1">
                                 <div className="flex items-start gap-1">
@@ -111,9 +114,10 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                               <CardContent className="p-3 pt-0 text-xs text-muted-foreground space-y-1">
                                 {formatResponsaveis(task.responsavel) && <div>👤 {formatResponsaveis(task.responsavel)}</div>}
                                 {task.data_inicio && <div>📅 {task.data_inicio}{task.data_fim ? ` → ${task.data_fim}` : ""}</div>}
+                                {urgency.label && <div className="font-medium" style={{ color: "inherit" }}>{urgency.label}</div>}
                               </CardContent>
                             </Card>
-                          )}
+                          )}}
                         </Draggable>
                       ))}
                       {provided.placeholder}

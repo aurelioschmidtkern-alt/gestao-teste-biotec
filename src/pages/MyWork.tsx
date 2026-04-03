@@ -11,6 +11,7 @@ import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import { TaskForm } from "@/components/TaskForm";
 import { toast } from "sonner";
+import { getTaskUrgency } from "@/lib/taskUrgency";
 import {
   isToday,
   isThisWeek,
@@ -150,8 +151,10 @@ export default function MyWork() {
                     <Badge variant="secondary">{items.length}</Badge>
                   </div>
                   <div className="space-y-2">
-                    {items.map((task) => (
-                      <Card key={task.id} className="hover:shadow-sm transition-shadow">
+                    {items.map((task) => {
+                      const urgency = getTaskUrgency(task.data_fim, task.status);
+                      return (
+                      <Card key={task.id} className={`hover:shadow-sm transition-shadow ${urgency.borderClass}`}>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             <div className="w-36 shrink-0">
@@ -185,10 +188,13 @@ export default function MyWork() {
                             {task.data_inicio && (
                               <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">📅 {task.data_inicio}</span>
                             )}
+                            {urgency.label && (
+                              <span className="text-xs font-medium shrink-0">{urgency.label}</span>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )})}
                   </div>
                 </div>
               );

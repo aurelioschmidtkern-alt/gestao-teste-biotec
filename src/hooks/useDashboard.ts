@@ -53,6 +53,13 @@ export function useDashboard(projectId?: string | null) {
         costs = costs.filter(c => projectIds.has(c.projeto_id));
       }
 
+      // Filter by specific project if selected
+      if (projectId) {
+        projects = projects.filter(p => p.id === projectId);
+        tasks = tasks.filter(t => t.projeto_id === projectId);
+        costs = costs.filter(c => c.projeto_id === projectId);
+      }
+
       // Metrics
       const activeProjects = projects.filter(p => p.status === "Ativo").length;
       const tasksInProgress = tasks.filter(t => t.status === "Em Andamento").length;

@@ -1,33 +1,45 @@
 
 
-## Indicador de Urgência por Prazo — Plano
+## Exibir Usuário Logado no Topo — Plano
 
 ### Resumo
-Criar função utilitária que calcula urgência com base em `data_fim` e `status`, retornando cor e texto descritivo. Aplicar visualmente nos cards do Kanban e na tela Meu Trabalho.
+Criar um componente global de header com avatar, nome do usuário logado e menu dropdown (Meu Perfil, Sair). Adicionar campo `foto_url` na tabela `profiles`. Criar modal de edição de perfil (nome, foto). Aplicar em todas as telas internas.
+
+### Database
+
+**Migração**: Adicionar coluna `foto_url` (text, nullable) na tabela `profiles`.
+
+**Storage**: Criar bucket `avatars` (público) com política RLS para upload apenas pelo próprio usuário.
 
 ### Mudanças
 
-**Novo: `src/lib/taskUrgency.ts`**
-- Função `getTaskUrgency(dataFim: string | null, status: string)` que retorna `{ color, borderClass, label }`
-- Regras:
-  - Concluído → cinza, "Concluída"
-  - Sem data → neutro, sem label
-  - Atrasada → vermelho escuro (`border-l-4 border-red-800`), "Atrasada há X dias"
-  - Hoje/amanhã → vermelho (`border-l-4 border-red-500`), "Vence hoje" / "Vence amanhã"
-  - 2-3 dias → laranja (`border-l-4 border-orange-500`), "Vence em X dias"
-  - 4-7 dias → amarelo (`border-l-4 border-yellow-500`), "Vence em X dias"
-  - +7 dias → verde (`border-l-4 border-green-500`), "Prazo ok"
+**Novo: `src/components/UserMenu.tsx`**
+- Componente que busca o perfil do usuário logado (query na tabela `profiles` por `auth.uid()`)
+- Avatar circular: exibe foto se `foto_url` existir, senão inicial do nome
+- Nome do usuário ao lado (oculto em mobile)
+- Dropdown com: "Meu Perfil" (abre modal de edição), "Sair" (chama `signOut`)
+- Usa `Avatar`, `AvatarImage`, `AvatarFallback`, `DropdownMenu`
 
-**Editar: `src/components/KanbanBoard.tsx`**
-- Importar `getTaskUrgency`
-- No `<Card>` de cada tarefa, adicionar `borderClass` ao className
-- Exibir `label` como texto pequeno no `<CardContent>`
+**Novo: `src/components/ProfileEditDialog.tsx`**
+- Modal com campos: nome, foto (upload de imagem)
+- Upload de foto vai para bucket `avatars` via Supabase Storage
+- Ao salvar, atualiza `profiles.nome` e `profiles.foto_url`
+- Invalida queries para refletir mudanças imediatas
 
-**Editar: `src/pages/MyWork.tsx`**
-- Importar `getTaskUrgency`
-- No `<Card>` de cada tarefa, adicionar `borderClass` ao className
-- Exibir `label` como badge/texto ao lado da data
+**Novo: `src/hooks/useProfile.ts`**
+- Hook que busca o perfil do usuário logado (`profiles` where `user_id = auth.uid()`)
+- Mutation para atualizar nome e foto_url
+
+**Editar: `src/pages/Index.tsx`**
+- Substituir o botão de logout pelo componente `UserMenu`
+- Mover `UserMenu` para o header, canto direito
+
+**Editar: `src/pages/MyWork.tsx`, `src/pages/ProjectDetail.tsx`, `src/pages/Users.tsx`**
+- Adicionar `UserMenu` no header de cada página (canto superior direito)
 
 ### O que NÃO muda
-- Banco de dados, hooks, formulários, login, usuários
+- Tela de login/registro
+- Projetos, tarefas, custos, Kanban
+- Gerenciamento de usuários (tela admin)
+- RLS policies existentes
 

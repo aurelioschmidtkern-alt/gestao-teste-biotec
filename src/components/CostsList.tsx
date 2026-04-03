@@ -17,6 +17,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
   const [editingCost, setEditingCost] = useState<Custo | null>(null);
 
   const total = costs.reduce((sum, c) => sum + Number(c.valor), 0);
+  const existingCategories = Array.from(new Set(costs.map(c => c.categoria)));
 
   const handleCreate = (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => {
     createCost.mutate({ ...data, projeto_id: projetoId }, {
@@ -100,8 +101,8 @@ export function CostsList({ projetoId }: { projetoId: string }) {
         </CardContent>
       </Card>
 
-      <CostForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
-      <CostForm open={!!editingCost} onOpenChange={open => { if (!open) setEditingCost(null); }} onSubmit={handleEdit} initial={editingCost} />
+      <CostForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} existingCategories={existingCategories} />
+      <CostForm open={!!editingCost} onOpenChange={open => { if (!open) setEditingCost(null); }} onSubmit={handleEdit} initial={editingCost} existingCategories={existingCategories} />
     </div>
   );
 }

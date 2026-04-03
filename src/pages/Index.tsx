@@ -32,7 +32,10 @@ export default function Index() {
             <h1 className="text-3xl font-bold">Projetos</h1>
             <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
           </div>
-          <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
+            <Button variant="outline" onClick={() => signOut().then(() => navigate("/auth"))}><LogOut className="h-4 w-4" /></Button>
+          </div>
         </div>
 
         {/* Projects Grid */}

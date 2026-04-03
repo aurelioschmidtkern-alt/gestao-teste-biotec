@@ -79,7 +79,7 @@ export default function Users() {
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Usuários</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie os usuários do sistema</p>
         </div>
-        <Button onClick={() => setFormOpen(true)} className="shadow-sm">
+        <Button onClick={() => setFormOpen(true)} className="shadow-sm w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Novo Usuário
         </Button>
       </motion.div>

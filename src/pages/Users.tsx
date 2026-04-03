@@ -69,17 +69,17 @@ export default function Users() {
 
   return (
     <motion.div
-      className="max-w-6xl mx-auto p-8 space-y-8"
+      className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8"
       initial="initial"
       animate="animate"
       variants={{ animate: { transition: { staggerChildren: 0.06 } } }}
     >
-      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
+      <motion.div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" variants={fadeInUp}>
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Usuários</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Usuários</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie os usuários do sistema</p>
         </div>
-        <Button onClick={() => setFormOpen(true)} className="shadow-sm">
+        <Button onClick={() => setFormOpen(true)} className="shadow-sm w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" /> Novo Usuário
         </Button>
       </motion.div>
@@ -99,8 +99,8 @@ export default function Users() {
               <CardTitle className="text-sm font-semibold">Lista de Usuários ({users.length})</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="divide-y divide-border/50">
-                {/* Table Header */}
+              {/* Desktop Table */}
+              <div className="hidden md:block divide-y divide-border/50">
                 <div className="grid grid-cols-[1fr_1fr_120px_100px_100px_80px] gap-4 pb-3 text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
                   <span>Nome</span>
                   <span>Email</span>
@@ -109,14 +109,13 @@ export default function Users() {
                   <span>Data</span>
                   <span></span>
                 </div>
-                {/* Rows */}
                 {users.map(u => (
                   <div
                     key={u.id}
                     className="grid grid-cols-[1fr_1fr_120px_100px_100px_80px] gap-4 py-3.5 items-center hover:bg-muted/30 transition-colors rounded-lg -mx-2 px-2"
                   >
                     <span className="font-medium text-sm">{u.nome}</span>
-                    <span className="text-sm text-muted-foreground">{u.email}</span>
+                    <span className="text-sm text-muted-foreground truncate">{u.email}</span>
                     <span>
                       <Badge className={`rounded-full text-xs ${PROFILE_COLORS[u.perfil] || ""}`}>{u.perfil}</Badge>
                     </span>
@@ -125,22 +124,36 @@ export default function Users() {
                     </span>
                     <span className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString("pt-BR")}</span>
                     <div className="flex gap-0.5">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                        onClick={() => setEditingUser(u)}
-                      >
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingUser(u)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                        onClick={() => toggleStatus(u)}
-                      >
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => toggleStatus(u)}>
                         {u.status === "Ativo" ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
                       </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {users.map(u => (
+                  <div key={u.id} className="p-3 rounded-lg border border-border/50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{u.nome}</span>
+                      <div className="flex gap-0.5">
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingUser(u)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => toggleStatus(u)}>
+                          {u.status === "Ativo" ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                    <div className="flex items-center gap-2">
+                      <Badge className={`rounded-full text-xs ${PROFILE_COLORS[u.perfil] || ""}`}>{u.perfil}</Badge>
+                      <Badge className={`rounded-full text-xs ${STATUS_BADGE[u.status] || ""}`}>{u.status}</Badge>
+                      <span className="text-xs text-muted-foreground ml-auto">{new Date(u.created_at).toLocaleDateString("pt-BR")}</span>
                     </div>
                   </div>
                 ))}

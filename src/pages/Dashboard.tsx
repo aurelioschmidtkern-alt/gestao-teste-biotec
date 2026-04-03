@@ -60,19 +60,19 @@ export default function Dashboard() {
   ];
 
   return (
-    <motion.div className="max-w-7xl mx-auto p-8 space-y-8" initial="initial" animate="animate" variants={stagger}>
+    <motion.div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8" initial="initial" animate="animate" variants={stagger}>
       {/* Header */}
-      <motion.div className="flex items-center justify-between flex-wrap gap-4" variants={fadeInUp}>
+      <motion.div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4" variants={fadeInUp}>
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground mt-1">Visão geral do sistema</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Select
             value={selectedProjectId || "all"}
             onValueChange={(v) => setSelectedProjectId(v === "all" ? null : v)}
           >
-            <SelectTrigger className="w-[220px] h-10">
+            <SelectTrigger className="w-full sm:w-[220px] h-10">
               <SelectValue placeholder="Todos os projetos" />
             </SelectTrigger>
             <SelectContent>

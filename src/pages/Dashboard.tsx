@@ -157,7 +157,7 @@ export default function Dashboard() {
                 "No prazo": { label: "No prazo", color: "hsl(142, 71%, 45%)" },
                 "Atenção": { label: "Atenção", color: "hsl(38, 92%, 50%)" },
                 "Atrasadas": { label: "Atrasadas", color: "hsl(0, 84%, 60%)" },
-              }} className="h-[220px] w-full mx-auto">
+              }} className="h-[220px] w-full !aspect-auto">
                 <BarChart data={tasksByDeadline}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />

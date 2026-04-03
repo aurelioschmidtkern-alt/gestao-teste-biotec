@@ -7,6 +7,7 @@ import { Plus, FolderOpen, Trash2, Users, ClipboardList } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
 import { ProjectForm } from "@/components/ProjectForm";
+import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {

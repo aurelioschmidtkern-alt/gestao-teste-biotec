@@ -21,11 +21,11 @@ export type DashboardData = {
   criticalTasks: (Tables<"tarefas"> & { projectName: string })[];
 };
 
-export function useDashboard() {
+export function useDashboard(projectId?: string | null) {
   const { profile } = useProfile();
 
   return useQuery({
-    queryKey: ["dashboard", profile?.nome, profile?.perfil],
+    queryKey: ["dashboard", profile?.nome, profile?.perfil, projectId],
     queryFn: async () => {
       const [projectsRes, tasksRes, costsRes] = await Promise.all([
         supabase.from("projetos").select("*").order("created_at", { ascending: false }),
@@ -51,6 +51,13 @@ export function useDashboard() {
           projectIds.has(t.projeto_id) || (t.responsavel && t.responsavel.includes(userName))
         );
         costs = costs.filter(c => projectIds.has(c.projeto_id));
+      }
+
+      // Filter by specific project if selected
+      if (projectId) {
+        projects = projects.filter(p => p.id === projectId);
+        tasks = tasks.filter(t => t.projeto_id === projectId);
+        costs = costs.filter(c => c.projeto_id === projectId);
       }
 
       // Metrics

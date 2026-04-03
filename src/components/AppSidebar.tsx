@@ -16,8 +16,7 @@ import {
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { profile } = useProfile();
-  const isAdmin = profile?.perfil === "Administrador";
+  const { canManageUsers } = usePermissions();
 
   return (
     <Sidebar collapsible="icon">

@@ -11,11 +11,17 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 
 export default function Users() {
+  const navigate = useNavigate();
+  const { canManageUsers } = usePermissions();
   const { data: users = [], isLoading, error } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    if (!canManageUsers) navigate("/", { replace: true });
+  }, [canManageUsers, navigate]);
 
   const handleCreate = (data: { nome: string; email: string; password: string; perfil: string }) => {
     createUser.mutate(data, {

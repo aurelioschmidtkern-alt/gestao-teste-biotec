@@ -20,10 +20,32 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function Index() {
   const navigate = useNavigate();
-  const { data: projects = [], isLoading } = useProjects();
+  const { data: allProjects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
   const deleteProject = useDeleteProject();
   const [formOpen, setFormOpen] = useState(false);
+  const { canCreateProject, canDeleteProject, canViewAllProjects } = usePermissions();
+  const { profile } = useProfile();
+  const userName = profile?.nome || "";
+
+  // For Funcionario: get task project IDs to determine linked projects
+  const { data: linkedProjectIds } = useQuery({
+    queryKey: ["linked-project-ids", userName],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tarefas")
+        .select("projeto_id")
+        .contains("responsavel", [userName]);
+      return new Set((data || []).map(t => t.projeto_id));
+    },
+    enabled: !canViewAllProjects && !!userName,
+  });
+
+  const projects = canViewAllProjects
+    ? allProjects
+    : allProjects.filter(p =>
+        p.responsavel === userName || (linkedProjectIds && linkedProjectIds.has(p.id))
+      );
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">

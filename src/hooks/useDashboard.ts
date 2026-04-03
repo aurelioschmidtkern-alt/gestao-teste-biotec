@@ -21,11 +21,11 @@ export type DashboardData = {
   criticalTasks: (Tables<"tarefas"> & { projectName: string })[];
 };
 
-export function useDashboard() {
+export function useDashboard(projectId?: string | null) {
   const { profile } = useProfile();
 
   return useQuery({
-    queryKey: ["dashboard", profile?.nome, profile?.perfil],
+    queryKey: ["dashboard", profile?.nome, profile?.perfil, projectId],
     queryFn: async () => {
       const [projectsRes, tasksRes, costsRes] = await Promise.all([
         supabase.from("projetos").select("*").order("created_at", { ascending: false }),

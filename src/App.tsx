@@ -9,6 +9,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Users from "./pages/Users";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import MyWork from "./pages/MyWork";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/projeto/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
           <Route path="/usuarios" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+          <Route path="/meu-trabalho" element={<ProtectedRoute><MyWork /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

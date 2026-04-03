@@ -33,6 +33,7 @@ export default function Index() {
             <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/meu-trabalho")}><ClipboardList className="h-4 w-4 mr-2" /> Meu Trabalho</Button>
             <Button variant="outline" onClick={() => navigate("/usuarios")}><Users className="h-4 w-4 mr-2" /> Usuários</Button>
             <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
             <Button variant="outline" onClick={() => signOut().then(() => navigate("/auth"))}><LogOut className="h-4 w-4" /></Button>

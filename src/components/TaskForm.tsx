@@ -58,8 +58,9 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
       data_inicio: dataInicio || "",
       data_fim: dataFim || "",
       status: initial?.status ?? defaultStatus,
+      prioridade: prioridade || "",
     });
-    if (!initial) { setNome(""); setDescricao(""); setResponsaveis([]); setDataInicio(""); setDataFim(""); }
+    if (!initial) { setNome(""); setDescricao(""); setResponsaveis([]); setDataInicio(""); setDataFim(""); setPrioridade(""); }
     onOpenChange(false);
   };
 

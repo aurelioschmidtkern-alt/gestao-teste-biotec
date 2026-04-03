@@ -35,7 +35,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="shadow-sm border-border/50">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">

@@ -15,7 +15,7 @@ import type { Tarefa } from "@/hooks/useTasks";
 interface TaskFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { nome: string; descricao: string; responsaveis: string[]; data_inicio: string; data_fim: string; status: string }) => void;
+  onSubmit: (data: { nome: string; descricao: string; responsaveis: string[]; data_inicio: string; data_fim: string; status: string; prioridade: string }) => void;
   initial?: Tarefa | null;
   defaultStatus?: string;
 }

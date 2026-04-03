@@ -114,9 +114,10 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                               <CardContent className="p-3 pt-0 text-xs text-muted-foreground space-y-1">
                                 {formatResponsaveis(task.responsavel) && <div>👤 {formatResponsaveis(task.responsavel)}</div>}
                                 {task.data_inicio && <div>📅 {task.data_inicio}{task.data_fim ? ` → ${task.data_fim}` : ""}</div>}
+                                {urgency.label && <div className="font-medium" style={{ color: "inherit" }}>{urgency.label}</div>}
                               </CardContent>
                             </Card>
-                          )}
+                          )}}
                         </Draggable>
                       ))}
                       {provided.placeholder}

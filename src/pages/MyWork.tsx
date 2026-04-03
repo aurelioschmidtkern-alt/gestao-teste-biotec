@@ -188,10 +188,13 @@ export default function MyWork() {
                             {task.data_inicio && (
                               <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">📅 {task.data_inicio}</span>
                             )}
+                            {urgency.label && (
+                              <span className="text-xs font-medium shrink-0">{urgency.label}</span>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )})}
                   </div>
                 </div>
               );

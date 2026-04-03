@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, FolderOpen, Trash2 } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
 import { ProjectForm } from "@/components/ProjectForm";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -16,10 +20,32 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function Index() {
   const navigate = useNavigate();
-  const { data: projects = [], isLoading } = useProjects();
+  const { data: allProjects = [], isLoading } = useProjects();
   const createProject = useCreateProject();
   const deleteProject = useDeleteProject();
   const [formOpen, setFormOpen] = useState(false);
+  const { canCreateProject, canDeleteProject, canViewAllProjects } = usePermissions();
+  const { profile } = useProfile();
+  const userName = profile?.nome || "";
+
+  // For Funcionario: get task project IDs to determine linked projects
+  const { data: linkedProjectIds } = useQuery({
+    queryKey: ["linked-project-ids", userName],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tarefas")
+        .select("projeto_id")
+        .contains("responsavel", [userName]);
+      return new Set((data || []).map(t => t.projeto_id));
+    },
+    enabled: !canViewAllProjects && !!userName,
+  });
+
+  const projects = canViewAllProjects
+    ? allProjects
+    : allProjects.filter(p =>
+        p.responsavel === userName || (linkedProjectIds && linkedProjectIds.has(p.id))
+      );
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -28,9 +54,11 @@ export default function Index() {
           <h1 className="text-3xl font-bold">Projetos</h1>
           <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Projeto
-        </Button>
+        {canCreateProject && (
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Projeto
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -50,17 +78,19 @@ export default function Index() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg">{p.nome}</CardTitle>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-destructive"
-                    onClick={e => {
-                      e.stopPropagation();
-                      deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {canDeleteProject && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-destructive"
+                      onClick={e => {
+                        e.stopPropagation();
+                        deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">

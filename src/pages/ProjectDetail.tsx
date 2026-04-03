@@ -10,6 +10,7 @@ import { KanbanBoard } from "@/components/KanbanBoard";
 import { CostsList } from "@/components/CostsList";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useUpdateProject } from "@/hooks/useProjects";
+import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -23,6 +24,7 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const updateProject = useUpdateProject();
   const [editOpen, setEditOpen] = useState(false);
+  const { canEditProject, canAccessCosts } = usePermissions();
 
   const { data: projeto, isLoading } = useQuery({
     queryKey: ["projeto", id],
@@ -52,23 +54,27 @@ export default function ProjectDetail() {
             Criado em {new Date(projeto.created_at).toLocaleDateString("pt-BR")}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-          <Pencil className="h-4 w-4 mr-1" /> Editar
-        </Button>
+        {canEditProject && (
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4 mr-1" /> Editar
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="kanban">
         <TabsList>
           <TabsTrigger value="kanban">Kanban</TabsTrigger>
-          <TabsTrigger value="custos">Custos</TabsTrigger>
+          {canAccessCosts && <TabsTrigger value="custos">Custos</TabsTrigger>}
         </TabsList>
         <TabsContent value="kanban" className="mt-4">
           <KanbanBoard projetoId={projeto.id} />
         </TabsContent>
-        <TabsContent value="custos" className="mt-4">
-          <CostsList projetoId={projeto.id} />
-        </TabsContent>
+        {canAccessCosts && (
+          <TabsContent value="custos" className="mt-4">
+            <CostsList projetoId={projeto.id} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <ProjectForm

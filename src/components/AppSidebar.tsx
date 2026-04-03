@@ -1,6 +1,6 @@
 import { BarChart3, ClipboardList, FolderOpen, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useProfile } from "@/hooks/useProfile";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Sidebar,
   SidebarContent,
@@ -16,8 +16,7 @@ import {
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { profile } = useProfile();
-  const isAdmin = profile?.perfil === "Administrador";
+  const { canManageUsers } = usePermissions();
 
   return (
     <Sidebar collapsible="icon">
@@ -71,7 +70,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isAdmin && (
+        {canManageUsers && (
           <SidebarGroup>
             <SidebarGroupLabel>Administração</SidebarGroupLabel>
             <SidebarGroupContent>

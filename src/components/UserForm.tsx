@@ -17,13 +17,13 @@ export function UserForm({ open, onOpenChange, onSubmit, initial }: UserFormProp
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [perfil, setPerfil] = useState("Usuário");
+  const [perfil, setPerfil] = useState("Funcionario");
 
   useEffect(() => {
     setNome(initial?.nome ?? "");
     setEmail(initial?.email ?? "");
     setPassword("");
-    setPerfil(initial?.perfil ?? "Usuário");
+    setPerfil(initial?.perfil ?? "Funcionario");
   }, [initial]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,7 +57,8 @@ export function UserForm({ open, onOpenChange, onSubmit, initial }: UserFormProp
             <Select value={perfil} onValueChange={setPerfil}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Usuário">Usuário</SelectItem>
+                <SelectItem value="Funcionario">Funcionário</SelectItem>
+                <SelectItem value="Coordenador">Coordenador</SelectItem>
                 <SelectItem value="Administrador">Administrador</SelectItem>
               </SelectContent>
             </Select>

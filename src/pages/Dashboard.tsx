@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderOpen, ListChecks, CheckCircle2, AlertTriangle, DollarSign, Plus } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
-import { useProfile } from "@/hooks/useProfile";
+import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/hooks/useCosts";
 import { getTaskUrgency } from "@/lib/taskUrgency";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -28,8 +28,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const { data, isLoading } = useDashboard(selectedProjectId);
-  const { profile } = useProfile();
-  const isAdmin = profile?.perfil === "Administrador";
+  const { canCreateProject } = usePermissions();
   const { data: allData } = useDashboard(null);
 
   if (isLoading || !data) {
@@ -65,7 +64,7 @@ export default function Dashboard() {
               ))}
             </SelectContent>
           </Select>
-          {isAdmin && (
+          {canCreateProject && (
             <Button variant="outline" onClick={() => navigate("/")}><Plus className="h-4 w-4 mr-2" /> Novo Projeto</Button>
           )}
         </div>

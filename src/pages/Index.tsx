@@ -21,12 +21,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 const fadeInUp = {
   initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+  animate: { opacity: 1, y: 0 },
 };
 
-const stagger = {
-  animate: { transition: { staggerChildren: 0.06 } },
-};
+const getFadeTransition = (delay = 0) => ({
+  duration: 0.4,
+  delay,
+  ease: "easeOut" as const,
+});
 
 export default function Index() {
   const navigate = useNavigate();
@@ -45,20 +47,26 @@ export default function Index() {
         .from("tarefas")
         .select("projeto_id")
         .contains("responsavel", [userName]);
-      return new Set((data || []).map(t => t.projeto_id));
+      return new Set((data || []).map((t) => t.projeto_id));
     },
     enabled: !canViewAllProjects && !!userName,
   });
 
   const projects = canViewAllProjects
     ? allProjects
-    : allProjects.filter(p =>
-        p.responsavel === userName || (linkedProjectIds && linkedProjectIds.has(p.id))
+    : allProjects.filter(
+        (p) => p.responsavel === userName || (linkedProjectIds && linkedProjectIds.has(p.id))
       );
 
   return (
-    <motion.div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8" initial="initial" animate="animate" variants={stagger}>
-      <motion.div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" variants={fadeInUp}>
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+      <motion.div
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        initial="initial"
+        animate="animate"
+        variants={fadeInUp}
+        transition={getFadeTransition()}
+      >
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Projetos</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie seus projetos, tarefas e custos</p>
@@ -73,7 +81,12 @@ export default function Index() {
       {isLoading ? (
         <div className="text-center text-muted-foreground py-12">Carregando projetos...</div>
       ) : projects.length === 0 ? (
-        <motion.div variants={fadeInUp}>
+        <motion.div
+          initial="initial"
+          animate="animate"
+          variants={fadeInUp}
+          transition={getFadeTransition()}
+        >
           <Card className="shadow-sm border-border/50">
             <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
               <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
@@ -85,22 +98,28 @@ export default function Index() {
           </Card>
         </motion.div>
       ) : (
-        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" variants={stagger}>
-          {projects.map(p => (
-            <motion.div key={p.id} variants={fadeInUp}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {projects.map((p, index) => (
+            <motion.div
+              key={p.id}
+              initial="initial"
+              animate="animate"
+              variants={fadeInUp}
+              transition={getFadeTransition(index * 0.05)}
+            >
               <Card
                 className="cursor-pointer shadow-sm border-border/50 hover:shadow-md hover:scale-[1.01] transition-all duration-200 group"
                 onClick={() => navigate(`/projeto/${p.id}`)}
               >
                 <CardContent className="p-5 space-y-3">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-base group-hover:text-primary transition-colors">{p.nome}</h3>
                     {canDeleteProject && (
                       <Button
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
                         }}
@@ -115,12 +134,14 @@ export default function Index() {
                       <User className="h-3.5 w-3.5" /> {p.responsavel}
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground/60">Criado em {new Date(p.created_at).toLocaleDateString("pt-BR")}</p>
+                  <p className="text-xs text-muted-foreground/60">
+                    Criado em {new Date(p.created_at).toLocaleDateString("pt-BR")}
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       )}
 
       <ProjectForm
@@ -130,6 +151,6 @@ export default function Index() {
           createProject.mutate(data, { onSuccess: () => toast.success("Projeto criado!") });
         }}
       />
-    </motion.div>
+    </div>
   );
 }

@@ -51,6 +51,6 @@ export function useDeleteTask() {
       const { error } = await supabase.from("tarefas").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }),
+    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }); qc.invalidateQueries({ queryKey: ["my-tasks"] }); },
   });
 }

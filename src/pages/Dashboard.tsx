@@ -28,8 +28,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const { data, isLoading } = useDashboard(selectedProjectId);
-  const { profile } = useProfile();
-  const isAdmin = profile?.perfil === "Administrador";
+  const { canCreateProject } = usePermissions();
   const { data: allData } = useDashboard(null);
 
   if (isLoading || !data) {

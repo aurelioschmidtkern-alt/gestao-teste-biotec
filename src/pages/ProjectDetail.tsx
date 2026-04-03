@@ -12,11 +12,12 @@ import { ProjectForm } from "@/components/ProjectForm";
 import { useUpdateProject } from "@/hooks/useProjects";
 import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const STATUS_COLORS: Record<string, string> = {
-  Ativo: "bg-green-100 text-green-800",
-  Pausado: "bg-yellow-100 text-yellow-800",
-  Concluído: "bg-blue-100 text-blue-800",
+  Ativo: "bg-emerald-100 text-emerald-700",
+  Pausado: "bg-amber-100 text-amber-700",
+  Concluído: "bg-secondary text-secondary-foreground",
 };
 
 export default function ProjectDetail() {
@@ -40,22 +41,29 @@ export default function ProjectDetail() {
   if (!projeto) return <div className="flex items-center justify-center min-h-[50vh] text-muted-foreground">Projeto não encontrado</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <motion.div
+      className="max-w-6xl mx-auto p-8 space-y-6"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9 hover:bg-muted/50">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{projeto.nome}</h1>
-            <Badge className={STATUS_COLORS[projeto.status] || ""}>{projeto.status}</Badge>
+            <h1 className="text-2xl font-semibold tracking-tight">{projeto.nome}</h1>
+            <Badge className={`rounded-full ${STATUS_COLORS[projeto.status] || ""}`}>{projeto.status}</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {projeto.responsavel && `Responsável: ${projeto.responsavel} · `}
             Criado em {new Date(projeto.created_at).toLocaleDateString("pt-BR")}
           </p>
         </div>
         {canEditProject && (
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shadow-sm">
             <Pencil className="h-4 w-4 mr-1" /> Editar
           </Button>
         )}
@@ -63,15 +71,15 @@ export default function ProjectDetail() {
 
       {/* Tabs */}
       <Tabs defaultValue="kanban">
-        <TabsList>
+        <TabsList className="bg-muted/50">
           <TabsTrigger value="kanban">Kanban</TabsTrigger>
           {canAccessCosts && <TabsTrigger value="custos">Custos</TabsTrigger>}
         </TabsList>
-        <TabsContent value="kanban" className="mt-4">
+        <TabsContent value="kanban" className="mt-6">
           <KanbanBoard projetoId={projeto.id} />
         </TabsContent>
         {canAccessCosts && (
-          <TabsContent value="custos" className="mt-4">
+          <TabsContent value="custos" className="mt-6">
             <CostsList projetoId={projeto.id} />
           </TabsContent>
         )}
@@ -87,6 +95,6 @@ export default function ProjectDetail() {
           });
         }}
       />
-    </div>
+    </motion.div>
   );
 }

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2, Pencil, DollarSign, Hash } from "lucide-react";
 import { CostForm } from "./CostForm";
 import { useCosts, useCreateCost, useUpdateCost, useDeleteCost, formatCurrency, type Custo } from "@/hooks/useCosts";
@@ -35,68 +34,77 @@ export function CostsList({ projetoId }: { projetoId: string }) {
   if (isLoading) return <div className="text-muted-foreground">Carregando custos...</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-full bg-primary/10"><DollarSign className="h-5 w-5 text-primary" /></div>
+        <Card className="shadow-sm border-border/50">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-emerald-600" />
+            </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total de Custos</p>
-              <p className="text-lg font-bold">{formatCurrency(total)}</p>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Total de Custos</p>
+              <p className="text-xl font-bold">{formatCurrency(total)}</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-full bg-primary/10"><Hash className="h-5 w-5 text-primary" /></div>
+        <Card className="shadow-sm border-border/50">
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Hash className="h-5 w-5 text-blue-600" />
+            </div>
             <div>
-              <p className="text-xs text-muted-foreground">Registros</p>
-              <p className="text-lg font-bold">{costs.length}</p>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Registros</p>
+              <p className="text-xl font-bold">{costs.length}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base">Custos</CardTitle>
-          <Button size="sm" onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-1" /> Adicionar</Button>
+      <Card className="shadow-sm border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-sm font-semibold">Custos</CardTitle>
+          <Button size="sm" onClick={() => setFormOpen(true)} className="shadow-sm">
+            <Plus className="h-4 w-4 mr-1" /> Adicionar
+          </Button>
         </CardHeader>
         <CardContent>
           {costs.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">Nenhum custo registrado</p>
+            <p className="text-sm text-muted-foreground text-center py-8">Nenhum custo registrado</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead className="w-20"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {costs.map(c => (
-                  <TableRow key={c.id}>
-                    <TableCell><Badge variant={c.tipo_custo === "Fixo" ? "default" : "secondary"}>{c.tipo_custo}</Badge></TableCell>
-                    <TableCell>{c.categoria}</TableCell>
-                    <TableCell className="font-medium">{formatCurrency(Number(c.valor))}</TableCell>
-                    <TableCell>{new Date(c.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingCost(c)}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="divide-y divide-border/50">
+              {/* Header */}
+              <div className="grid grid-cols-[100px_1fr_120px_100px_80px] gap-4 pb-3 text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                <span>Tipo</span>
+                <span>Categoria</span>
+                <span>Valor</span>
+                <span>Data</span>
+                <span></span>
+              </div>
+              {/* Rows */}
+              {costs.map(c => (
+                <div
+                  key={c.id}
+                  className="grid grid-cols-[100px_1fr_120px_100px_80px] gap-4 py-3.5 items-center hover:bg-muted/30 transition-colors rounded-lg -mx-2 px-2"
+                >
+                  <span>
+                    <Badge className={`rounded-full text-xs ${c.tipo_custo === "Fixo" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                      {c.tipo_custo}
+                    </Badge>
+                  </span>
+                  <span className="text-sm">{c.categoria}</span>
+                  <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(c.data + "T00:00:00").toLocaleDateString("pt-BR")}</span>
+                  <div className="flex gap-0.5">
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

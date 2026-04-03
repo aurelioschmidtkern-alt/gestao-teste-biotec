@@ -78,17 +78,19 @@ export default function Index() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg">{p.nome}</CardTitle>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-destructive"
-                    onClick={e => {
-                      e.stopPropagation();
-                      deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {canDeleteProject && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7 text-destructive"
+                      onClick={e => {
+                        e.stopPropagation();
+                        deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">

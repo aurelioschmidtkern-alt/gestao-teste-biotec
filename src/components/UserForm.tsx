@@ -57,7 +57,8 @@ export function UserForm({ open, onOpenChange, onSubmit, initial }: UserFormProp
             <Select value={perfil} onValueChange={setPerfil}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Usuário">Usuário</SelectItem>
+                <SelectItem value="Funcionario">Funcionário</SelectItem>
+                <SelectItem value="Coordenador">Coordenador</SelectItem>
                 <SelectItem value="Administrador">Administrador</SelectItem>
               </SelectContent>
             </Select>

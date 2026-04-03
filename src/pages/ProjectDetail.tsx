@@ -65,14 +65,16 @@ export default function ProjectDetail() {
       <Tabs defaultValue="kanban">
         <TabsList>
           <TabsTrigger value="kanban">Kanban</TabsTrigger>
-          <TabsTrigger value="custos">Custos</TabsTrigger>
+          {canAccessCosts && <TabsTrigger value="custos">Custos</TabsTrigger>}
         </TabsList>
         <TabsContent value="kanban" className="mt-4">
           <KanbanBoard projetoId={projeto.id} />
         </TabsContent>
-        <TabsContent value="custos" className="mt-4">
-          <CostsList projetoId={projeto.id} />
-        </TabsContent>
+        {canAccessCosts && (
+          <TabsContent value="custos" className="mt-4">
+            <CostsList projetoId={projeto.id} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <ProjectForm

@@ -41,10 +41,10 @@ export function useDashboard(projectId?: string | null) {
       let tasks = tasksRes.data;
       let costs = costsRes.data;
 
-      const isAdmin = profile?.perfil === "Administrador";
+      const canViewAll = profile?.perfil === "Administrador" || profile?.perfil === "Coordenador";
       const userName = profile?.nome || "";
 
-      if (!isAdmin && userName) {
+      if (!canViewAll && userName) {
         projects = projects.filter(p => p.responsavel === userName);
         const projectIds = new Set(projects.map(p => p.id));
         tasks = tasks.filter(t =>

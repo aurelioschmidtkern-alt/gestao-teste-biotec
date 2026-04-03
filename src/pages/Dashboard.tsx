@@ -217,40 +217,94 @@ export default function Dashboard() {
 
       {/* Projects + Critical Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Projetos em Andamento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {projects.filter(p => p.status === "Ativo").length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Nenhum projeto ativo</p>
-            ) : (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                {projects.filter(p => p.status === "Ativo").map(p => {
+        <div className="space-y-4">
+          {!selectedProjectId ? (
+            <>
+              {(["Ativo", "Pausado", "Concluído"] as const).map(status => {
+                const filtered = projects.filter(p => p.status === status);
+                if (filtered.length === 0) return null;
+                const sectionTitles: Record<string, string> = {
+                  Ativo: "Projetos Ativos",
+                  Pausado: "Projetos Pausados",
+                  Concluído: "Projetos Concluídos",
+                };
+                return (
+                  <Card key={status}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">{sectionTitles[status]}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3 max-h-[250px] overflow-y-auto">
+                        {filtered.map(p => {
+                          const projectTasks = tasks.filter(t => t.projeto_id === p.id);
+                          const done = projectTasks.filter(t => t.status === "Concluído").length;
+                          const total = projectTasks.length;
+                          return (
+                            <div
+                              key={p.id}
+                              className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors"
+                              onClick={() => navigate(`/projeto/${p.id}`)}
+                            >
+                              <div className="space-y-1">
+                                <p className="font-medium text-sm">{p.nome}</p>
+                                <p className="text-xs text-muted-foreground">{p.responsavel || "Sem responsável"}</p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Badge variant="secondary" className="text-xs">{done}/{total} tarefas</Badge>
+                                <Badge className={STATUS_COLORS[p.status]}>{p.status}</Badge>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+              {projects.length === 0 && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-sm text-muted-foreground text-center py-8">Nenhum projeto encontrado</p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Projeto Selecionado</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {projects.length > 0 ? (() => {
+                  const p = projects[0];
                   const projectTasks = tasks.filter(t => t.projeto_id === p.id);
+                  const aFazer = projectTasks.filter(t => t.status === "A Fazer").length;
+                  const emAnd = projectTasks.filter(t => t.status === "Em Andamento").length;
                   const done = projectTasks.filter(t => t.status === "Concluído").length;
-                  const total = projectTasks.length;
                   return (
                     <div
-                      key={p.id}
-                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors"
+                      className="p-4 rounded-lg border cursor-pointer hover:bg-accent/50 transition-colors space-y-3"
                       onClick={() => navigate(`/projeto/${p.id}`)}
                     >
-                      <div className="space-y-1">
-                        <p className="font-medium text-sm">{p.nome}</p>
-                        <p className="text-xs text-muted-foreground">{p.responsavel || "Sem responsável"}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary" className="text-xs">{done}/{total} tarefas</Badge>
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-lg">{p.nome}</p>
                         <Badge className={STATUS_COLORS[p.status]}>{p.status}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{p.responsavel || "Sem responsável"}</p>
+                      <div className="flex gap-3">
+                        <Badge variant="outline" className="text-xs">{aFazer} A Fazer</Badge>
+                        <Badge variant="outline" className="text-xs text-blue-600">{emAnd} Em Andamento</Badge>
+                        <Badge variant="outline" className="text-xs text-green-600">{done} Concluídas</Badge>
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                })() : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Projeto não encontrado</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <Card>
           <CardHeader className="pb-2">

@@ -58,6 +58,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
       responsavel: data.responsaveis.length > 0 ? data.responsaveis : null,
       data_inicio: data.data_inicio || null,
       data_fim: data.data_fim || null,
+      prioridade: data.prioridade || null,
     }, { onSuccess: () => { toast.success("Tarefa atualizada!"); setEditingTask(null); } });
   };
 

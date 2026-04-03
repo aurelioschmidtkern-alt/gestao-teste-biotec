@@ -122,6 +122,19 @@ export function TaskForm({ open, onOpenChange, onSubmit, initial, defaultStatus 
               <Input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
             </div>
           </div>
+          <div>
+            <Label>Prioridade</Label>
+            <Select value={prioridade} onValueChange={setPrioridade}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Baixa">Baixa</SelectItem>
+                <SelectItem value="Média">Média</SelectItem>
+                <SelectItem value="Alta">Alta</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button type="submit" className="w-full">{initial ? "Salvar" : "Criar Tarefa"}</Button>
         </form>
       </DialogContent>

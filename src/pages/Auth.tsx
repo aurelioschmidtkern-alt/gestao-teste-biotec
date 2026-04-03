@@ -42,7 +42,8 @@ export default function Auth() {
         navigate("/", { replace: true });
       } else {
         await signUp(nome, email, senha);
-        toast.success("Conta criada! Verifique seu e-mail para confirmar o cadastro.");
+        toast.success("Conta criada com sucesso!");
+        navigate("/", { replace: true });
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao processar solicitação");

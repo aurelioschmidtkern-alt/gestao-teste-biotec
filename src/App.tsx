@@ -26,6 +26,7 @@ const App = () => (
           <Route path="/projeto/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
           <Route path="/usuarios" element={<ProtectedRoute><Users /></ProtectedRoute>} />
           <Route path="/meu-trabalho" element={<ProtectedRoute><MyWork /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

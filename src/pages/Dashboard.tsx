@@ -185,7 +185,7 @@ export default function Dashboard() {
               ) : (
                 <ChartContainer config={
                   Object.fromEntries(costsByCategory.map((c, i) => [c.name, { label: c.name, color: COST_COLORS[i % COST_COLORS.length] }]))
-                } className="h-[220px]">
+                } className="h-[220px] w-full mx-auto">
                   <BarChart data={costsByCategory}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                     <XAxis dataKey="name" tick={{ fontSize: 11 }} />

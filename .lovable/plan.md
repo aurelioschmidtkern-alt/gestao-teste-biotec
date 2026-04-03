@@ -1,45 +1,49 @@
 
 
-## Exibir Usuário Logado no Topo — Plano
+## Dashboard Avançado — Plano de Implementação
 
 ### Resumo
-Criar um componente global de header com avatar, nome do usuário logado e menu dropdown (Meu Perfil, Sair). Adicionar campo `foto_url` na tabela `profiles`. Criar modal de edição de perfil (nome, foto). Aplicar em todas as telas internas.
+Criar uma página `/dashboard` com painel executivo contendo cards de resumo, gráficos (recharts já disponível), lista de projetos em andamento, tarefas críticas e ações rápidas. Filtro por perfil: admin vê tudo, usuário comum vê apenas seus projetos/tarefas.
 
-### Database
+### Arquivos
 
-**Migração**: Adicionar coluna `foto_url` (text, nullable) na tabela `profiles`.
+**Novo: `src/hooks/useDashboard.ts`**
+- Hook que busca dados agregados: todos os projetos, todas as tarefas, todos os custos
+- Calcula métricas: projetos ativos, tarefas em andamento/concluídas/atrasadas, total de custos
+- Filtra por perfil do usuário (admin = global, usuário = apenas projetos onde é responsável ou tarefas atribuídas)
 
-**Storage**: Criar bucket `avatars` (público) com política RLS para upload apenas pelo próprio usuário.
+**Novo: `src/pages/Dashboard.tsx`**
+Estrutura vertical:
 
-### Mudanças
+1. **Cards de resumo** (topo, grid 5 colunas): Projetos ativos, Tarefas em andamento, Tarefas concluídas, Tarefas atrasadas (vermelho), Total de custos (R$)
 
-**Novo: `src/components/UserMenu.tsx`**
-- Componente que busca o perfil do usuário logado (query na tabela `profiles` por `auth.uid()`)
-- Avatar circular: exibe foto se `foto_url` existir, senão inicial do nome
-- Nome do usuário ao lado (oculto em mobile)
-- Dropdown com: "Meu Perfil" (abre modal de edição), "Sair" (chama `signOut`)
-- Usa `Avatar`, `AvatarImage`, `AvatarFallback`, `DropdownMenu`
+2. **Gráficos** (grid 3 colunas):
+   - Donut: Tarefas por status (A Fazer / Em Andamento / Concluído) — cores consistentes com Kanban
+   - Barras: Tarefas por prazo (No prazo verde / Atenção amarelo / Atrasadas vermelho) — reutiliza lógica de `taskUrgency.ts`
+   - Barras: Custos por categoria — valores em R$
 
-**Novo: `src/components/ProfileEditDialog.tsx`**
-- Modal com campos: nome, foto (upload de imagem)
-- Upload de foto vai para bucket `avatars` via Supabase Storage
-- Ao salvar, atualiza `profiles.nome` e `profiles.foto_url`
-- Invalida queries para refletir mudanças imediatas
+3. **Projetos em andamento** (tabela): nome, status, responsável, qtd tarefas, badge de progresso
 
-**Novo: `src/hooks/useProfile.ts`**
-- Hook que busca o perfil do usuário logado (`profiles` where `user_id = auth.uid()`)
-- Mutation para atualizar nome e foto_url
+4. **Tarefas críticas** (lista, max 10): atrasadas e vencendo hoje/amanhã, ordenadas por urgência. Exibe nome, projeto, responsáveis, data, status
+
+5. **Ações rápidas** (botões): Novo Projeto, Nova Tarefa. Admin vê todos, usuário comum não vê "Novo Projeto"
+
+- Usa `recharts` (já instalado) com `ChartContainer`, `ChartTooltip`, `ChartTooltipContent` do componente `ui/chart`
+- Header com navegação de volta e `UserMenu`
+
+**Editar: `src/App.tsx`**
+- Adicionar rota `/dashboard` protegida
 
 **Editar: `src/pages/Index.tsx`**
-- Substituir o botão de logout pelo componente `UserMenu`
-- Mover `UserMenu` para o header, canto direito
+- Adicionar botão "Dashboard" no header que navega para `/dashboard`
 
-**Editar: `src/pages/MyWork.tsx`, `src/pages/ProjectDetail.tsx`, `src/pages/Users.tsx`**
-- Adicionar `UserMenu` no header de cada página (canto superior direito)
+### Regras de perfil
+- `useProfile()` retorna `perfil` do usuário
+- Admin/Coordenador: dados globais
+- Usuário: filtra projetos onde `responsavel` inclui seu nome, e tarefas onde `responsavel[]` inclui seu nome
 
 ### O que NÃO muda
-- Tela de login/registro
-- Projetos, tarefas, custos, Kanban
-- Gerenciamento de usuários (tela admin)
-- RLS policies existentes
+- Kanban, Meu Trabalho, custos, login, usuários
+- Banco de dados (usa dados existentes)
+- Hooks existentes (apenas cria novo `useDashboard`)
 

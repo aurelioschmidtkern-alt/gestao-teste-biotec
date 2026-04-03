@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 export default function Users() {
   const navigate = useNavigate();
-  const { canManageUsers } = usePermissions();
+  const { canManageUsers, isLoading: permissionsLoading } = usePermissions();
   const { data: users = [], isLoading, error } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
@@ -20,8 +20,8 @@ export default function Users() {
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    if (!canManageUsers) navigate("/", { replace: true });
-  }, [canManageUsers, navigate]);
+    if (!permissionsLoading && !canManageUsers) navigate("/", { replace: true });
+  }, [canManageUsers, permissionsLoading, navigate]);
 
   const handleCreate = (data: { nome: string; email: string; password: string; perfil: string }) => {
     createUser.mutate(data, {

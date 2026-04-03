@@ -2,6 +2,7 @@ import { useProfile } from "./useProfile";
 
 export type Permissions = {
   perfil: string;
+  isLoading: boolean;
   canCreateProject: boolean;
   canEditProject: boolean;
   canDeleteProject: boolean;
@@ -11,12 +12,27 @@ export type Permissions = {
 };
 
 export function usePermissions(): Permissions {
-  const { profile } = useProfile();
+  const { profile, isLoading } = useProfile();
   const perfil = profile?.perfil || "Funcionario";
+
+  // While loading, grant no permissions but signal loading state
+  if (isLoading || !profile) {
+    return {
+      perfil: "",
+      isLoading: true,
+      canCreateProject: false,
+      canEditProject: false,
+      canDeleteProject: false,
+      canManageUsers: false,
+      canAccessCosts: false,
+      canViewAllProjects: false,
+    };
+  }
 
   if (perfil === "Administrador") {
     return {
       perfil,
+      isLoading: false,
       canCreateProject: true,
       canEditProject: true,
       canDeleteProject: true,
@@ -29,6 +45,7 @@ export function usePermissions(): Permissions {
   if (perfil === "Coordenador") {
     return {
       perfil,
+      isLoading: false,
       canCreateProject: true,
       canEditProject: true,
       canDeleteProject: true,
@@ -41,6 +58,7 @@ export function usePermissions(): Permissions {
   // Funcionario
   return {
     perfil,
+    isLoading: false,
     canCreateProject: false,
     canEditProject: false,
     canDeleteProject: false,

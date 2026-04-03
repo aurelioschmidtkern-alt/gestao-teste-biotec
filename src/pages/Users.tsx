@@ -3,12 +3,29 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Pencil, UserCheck, UserX } from "lucide-react";
 import { UserForm } from "@/components/UserForm";
 import { useUsers, useCreateUser, useUpdateUser, type UserProfile } from "@/hooks/useUsers";
 import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+
+const PROFILE_COLORS: Record<string, string> = {
+  Administrador: "bg-blue-100 text-blue-700",
+  Coordenador: "bg-violet-100 text-violet-700",
+  Funcionario: "bg-secondary text-secondary-foreground",
+};
+
+const STATUS_BADGE: Record<string, string> = {
+  Ativo: "bg-emerald-100 text-emerald-700",
+  Inativo: "bg-red-100 text-red-700",
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease: "easeOut" as const },
+};
 
 export default function Users() {
   const navigate = useNavigate();
@@ -52,19 +69,24 @@ export default function Users() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <motion.div
+      className="max-w-6xl mx-auto p-8 space-y-8"
+      initial="initial"
+      animate="animate"
+      variants={{ animate: { transition: { staggerChildren: 0.06 } } }}
+    >
+      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
         <div>
-          <h1 className="text-3xl font-bold">Usuários</h1>
-          <p className="text-muted-foreground">Gerencie os usuários do sistema</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Usuários</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerencie os usuários do sistema</p>
         </div>
-        <Button onClick={() => setFormOpen(true)}>
+        <Button onClick={() => setFormOpen(true)} className="shadow-sm">
           <Plus className="h-4 w-4 mr-2" /> Novo Usuário
         </Button>
-      </div>
+      </motion.div>
 
       {error ? (
-        <Card>
+        <Card className="shadow-sm border-border/50">
           <CardContent className="py-8 text-center text-muted-foreground">
             <p>{(error as Error).message}</p>
           </CardContent>
@@ -72,50 +94,65 @@ export default function Users() {
       ) : isLoading ? (
         <div className="text-center text-muted-foreground py-12">Carregando usuários...</div>
       ) : (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Lista de Usuários ({users.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Perfil</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead className="w-24"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+        <motion.div variants={fadeInUp}>
+          <Card className="shadow-sm border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold">Lista de Usuários ({users.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="divide-y divide-border/50">
+                {/* Table Header */}
+                <div className="grid grid-cols-[1fr_1fr_120px_100px_100px_80px] gap-4 pb-3 text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                  <span>Nome</span>
+                  <span>Email</span>
+                  <span>Perfil</span>
+                  <span>Status</span>
+                  <span>Data</span>
+                  <span></span>
+                </div>
+                {/* Rows */}
                 {users.map(u => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.nome}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell><Badge variant={u.perfil === "Administrador" ? "default" : "secondary"}>{u.perfil}</Badge></TableCell>
-                    <TableCell><Badge variant={u.status === "Ativo" ? "default" : "outline"}>{u.status}</Badge></TableCell>
-                    <TableCell>{new Date(u.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingUser(u)}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => toggleStatus(u)}>
-                          {u.status === "Ativo" ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  <div
+                    key={u.id}
+                    className="grid grid-cols-[1fr_1fr_120px_100px_100px_80px] gap-4 py-3.5 items-center hover:bg-muted/30 transition-colors rounded-lg -mx-2 px-2"
+                  >
+                    <span className="font-medium text-sm">{u.nome}</span>
+                    <span className="text-sm text-muted-foreground">{u.email}</span>
+                    <span>
+                      <Badge className={`rounded-full text-xs ${PROFILE_COLORS[u.perfil] || ""}`}>{u.perfil}</Badge>
+                    </span>
+                    <span>
+                      <Badge className={`rounded-full text-xs ${STATUS_BADGE[u.status] || ""}`}>{u.status}</Badge>
+                    </span>
+                    <span className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString("pt-BR")}</span>
+                    <div className="flex gap-0.5">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => setEditingUser(u)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => toggleStatus(u)}
+                      >
+                        {u.status === "Ativo" ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       <UserForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
       <UserForm open={!!editingUser} onOpenChange={open => { if (!open) setEditingUser(null); }} onSubmit={handleEdit} initial={editingUser} />
-    </div>
+    </motion.div>
   );
 }

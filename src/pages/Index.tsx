@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FolderOpen, Trash2 } from "lucide-react";
+import { Plus, FolderOpen, Trash2, User } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
 import { ProjectForm } from "@/components/ProjectForm";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -11,11 +11,22 @@ import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const STATUS_COLORS: Record<string, string> = {
-  Ativo: "bg-green-100 text-green-800",
-  Pausado: "bg-yellow-100 text-yellow-800",
-  Concluído: "bg-blue-100 text-blue-800",
+  Ativo: "bg-emerald-100 text-emerald-700",
+  Pausado: "bg-amber-100 text-amber-700",
+  Concluído: "bg-secondary text-secondary-foreground",
+};
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease: "easeOut" as const },
+};
+
+const stagger = {
+  animate: { transition: { staggerChildren: 0.06 } },
 };
 
 export default function Index() {
@@ -28,7 +39,6 @@ export default function Index() {
   const { profile } = useProfile();
   const userName = profile?.nome || "";
 
-  // For Funcionario: get task project IDs to determine linked projects
   const { data: linkedProjectIds } = useQuery({
     queryKey: ["linked-project-ids", userName],
     queryFn: async () => {
@@ -48,59 +58,70 @@ export default function Index() {
       );
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <motion.div className="max-w-6xl mx-auto p-8 space-y-8" initial="initial" animate="animate" variants={stagger}>
+      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
         <div>
-          <h1 className="text-3xl font-bold">Projetos</h1>
-          <p className="text-muted-foreground">Gerencie seus projetos, tarefas e custos</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Projetos</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerencie seus projetos, tarefas e custos</p>
         </div>
         {canCreateProject && (
-          <Button onClick={() => setFormOpen(true)}>
+          <Button onClick={() => setFormOpen(true)} className="shadow-sm">
             <Plus className="h-4 w-4 mr-2" /> Novo Projeto
           </Button>
         )}
-      </div>
+      </motion.div>
 
       {isLoading ? (
         <div className="text-center text-muted-foreground py-12">Carregando projetos...</div>
       ) : projects.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <FolderOpen className="h-12 w-12 mb-4" />
-            <p className="text-lg font-medium">Nenhum projeto encontrado</p>
-            <p className="text-sm">Crie seu primeiro projeto para começar</p>
-          </CardContent>
-        </Card>
+        <motion.div variants={fadeInUp}>
+          <Card className="shadow-sm border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <FolderOpen className="h-8 w-8" />
+              </div>
+              <p className="text-lg font-medium">Nenhum projeto encontrado</p>
+              <p className="text-sm mt-1">Crie seu primeiro projeto para começar</p>
+            </CardContent>
+          </Card>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" variants={stagger}>
           {projects.map(p => (
-            <Card key={p.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/projeto/${p.id}`)}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{p.nome}</CardTitle>
-                  {canDeleteProject && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-destructive"
-                      onClick={e => {
-                        e.stopPropagation();
-                        deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+            <motion.div key={p.id} variants={fadeInUp}>
+              <Card
+                className="cursor-pointer shadow-sm border-border/50 hover:shadow-md hover:scale-[1.01] transition-all duration-200 group"
+                onClick={() => navigate(`/projeto/${p.id}`)}
+              >
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-semibold text-base group-hover:text-primary transition-colors">{p.nome}</h3>
+                    {canDeleteProject && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                        onClick={e => {
+                          e.stopPropagation();
+                          deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <Badge className={`rounded-full text-xs ${STATUS_COLORS[p.status] || ""}`}>{p.status}</Badge>
+                  {p.responsavel && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5" /> {p.responsavel}
+                    </p>
                   )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Badge className={STATUS_COLORS[p.status] || ""}>{p.status}</Badge>
-                {p.responsavel && <p className="text-sm text-muted-foreground">👤 {p.responsavel}</p>}
-                <p className="text-xs text-muted-foreground">Criado em {new Date(p.created_at).toLocaleDateString("pt-BR")}</p>
-              </CardContent>
-            </Card>
+                  <p className="text-xs text-muted-foreground/60">Criado em {new Date(p.created_at).toLocaleDateString("pt-BR")}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <ProjectForm
@@ -110,6 +131,6 @@ export default function Index() {
           createProject.mutate(data, { onSuccess: () => toast.success("Projeto criado!") });
         }}
       />
-    </div>
+    </motion.div>
   );
 }

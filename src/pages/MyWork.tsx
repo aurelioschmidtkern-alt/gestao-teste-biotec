@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Calendar, Clock } from "lucide-react";
+import { Plus, Calendar, Clock, FolderOpen } from "lucide-react";
 import { useMyTasks, type MyTask } from "@/hooks/useMyTasks";
 import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import { TaskForm } from "@/components/TaskForm";
 import { toast } from "sonner";
 import { getTaskUrgency } from "@/lib/taskUrgency";
+import { motion } from "framer-motion";
 import {
   isToday,
   isThisWeek,
@@ -24,15 +25,15 @@ import {
 } from "date-fns";
 
 const STATUS_COLORS: Record<string, string> = {
-  "A Fazer": "bg-muted text-muted-foreground",
-  "Em Andamento": "bg-blue-100 text-blue-800",
-  "Concluído": "bg-green-100 text-green-800",
+  "A Fazer": "bg-secondary text-secondary-foreground",
+  "Em Andamento": "bg-blue-100 text-blue-700",
+  "Concluído": "bg-emerald-100 text-emerald-700",
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  Baixa: "bg-gray-100 text-gray-700",
-  Média: "bg-yellow-100 text-yellow-800",
-  Alta: "bg-red-100 text-red-800",
+  Baixa: "bg-secondary text-secondary-foreground",
+  Média: "bg-amber-100 text-amber-700",
+  Alta: "bg-red-100 text-red-700",
 };
 
 type GroupKey = "today" | "thisWeek" | "nextWeek" | "later" | "noDate";
@@ -62,6 +63,16 @@ function groupTasksByDate(tasks: MyTask[]): Record<GroupKey, MyTask[]> {
   });
   return groups;
 }
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease: "easeOut" as const },
+};
+
+const stagger = {
+  animate: { transition: { staggerChildren: 0.05 } },
+};
 
 export default function MyWork() {
   const navigate = useNavigate();
@@ -111,86 +122,93 @@ export default function MyWork() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <motion.div className="max-w-6xl mx-auto p-8 space-y-8" initial="initial" animate="animate" variants={stagger}>
+      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
         <div>
-          <h1 className="text-3xl font-bold">Meu Trabalho</h1>
-          <p className="text-muted-foreground">Todas as suas tarefas em um só lugar</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Meu Trabalho</h1>
+          <p className="text-sm text-muted-foreground mt-1">Todas as suas tarefas em um só lugar</p>
         </div>
-        <Button onClick={openNewTask}>
+        <Button onClick={openNewTask} className="shadow-sm">
           <Plus className="h-4 w-4 mr-2" /> Novo Elemento
         </Button>
-      </div>
+      </motion.div>
 
       {isLoading ? (
         <div className="text-center text-muted-foreground py-12">Carregando tarefas...</div>
       ) : tasks.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Calendar className="h-12 w-12 mb-4" />
-            <p className="text-lg font-medium">Nenhuma tarefa atribuída a você</p>
-            <p className="text-sm">Quando você for adicionado como responsável, suas tarefas aparecerão aqui</p>
-          </CardContent>
-        </Card>
+        <motion.div variants={fadeInUp}>
+          <Card className="shadow-sm border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Calendar className="h-8 w-8" />
+              </div>
+              <p className="text-lg font-medium">Nenhuma tarefa atribuída a você</p>
+              <p className="text-sm mt-1">Quando você for adicionado como responsável, suas tarefas aparecerão aqui</p>
+            </CardContent>
+          </Card>
+        </motion.div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {(Object.keys(GROUP_LABELS) as GroupKey[]).map((key) => {
             const items = grouped[key];
             if (items.length === 0) return null;
             return (
-              <div key={key}>
-                <div className="flex items-center gap-2 mb-3">
-                  {key === "today" ? <Calendar className="h-4 w-4 text-muted-foreground" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
-                  <h2 className="font-semibold text-lg">{GROUP_LABELS[key]}</h2>
-                  <Badge variant="secondary">{items.length}</Badge>
+              <motion.div key={key} variants={fadeInUp}>
+                <div className="flex items-center gap-2.5 mb-3">
+                  {key === "today" ? <Calendar className="h-4 w-4 text-primary" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
+                  <h2 className="font-semibold text-base">{GROUP_LABELS[key]}</h2>
+                  <Badge variant="secondary" className="rounded-full text-xs">{items.length}</Badge>
                 </div>
                 <div className="space-y-2">
                   {items.map((task) => {
                     const urgency = getTaskUrgency(task.data_fim, task.status);
                     return (
-                    <Card key={task.id} className={`hover:shadow-sm transition-shadow ${urgency.borderClass}`}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-36 shrink-0">
-                            <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="A Fazer">A Fazer</SelectItem>
-                                <SelectItem value="Em Andamento">Em Andamento</SelectItem>
-                                <SelectItem value="Concluído">Concluído</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{task.nome}</p>
-                            <p className="text-xs text-muted-foreground truncate">📁 {task.projeto_nome}</p>
-                          </div>
-                          {task.responsavel && task.responsavel.length > 0 && (
-                            <div className="hidden md:flex gap-1 shrink-0">
-                              {task.responsavel.map((r) => (
-                                <Badge key={r} variant="outline" className="text-xs">{r}</Badge>
-                              ))}
+                      <Card key={task.id} className={`shadow-sm border-border/50 hover:shadow-md transition-all duration-200 border-l-[3px] ${urgency.borderClass}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-36 shrink-0">
+                              <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
+                                <SelectTrigger className="h-8 text-xs rounded-lg">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="A Fazer">A Fazer</SelectItem>
+                                  <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                                  <SelectItem value="Concluído">Concluído</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
-                          )}
-                          {task.prioridade && (
-                            <Badge className={`text-xs shrink-0 ${PRIORITY_COLORS[task.prioridade] || ""}`}>
-                              {task.prioridade}
-                            </Badge>
-                          )}
-                          {task.data_inicio && (
-                            <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">📅 {task.data_inicio}</span>
-                          )}
-                          {urgency.label && (
-                            <span className="text-xs font-medium shrink-0">{urgency.label}</span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )})}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{task.nome}</p>
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                <FolderOpen className="h-3 w-3" /> {task.projeto_nome}
+                              </p>
+                            </div>
+                            {task.responsavel && task.responsavel.length > 0 && (
+                              <div className="hidden md:flex gap-1 shrink-0">
+                                {task.responsavel.map((r) => (
+                                  <Badge key={r} variant="outline" className="text-xs rounded-full">{r}</Badge>
+                                ))}
+                              </div>
+                            )}
+                            {task.prioridade && (
+                              <Badge className={`text-xs shrink-0 rounded-full ${PRIORITY_COLORS[task.prioridade] || ""}`}>
+                                {task.prioridade}
+                              </Badge>
+                            )}
+                            {task.data_inicio && (
+                              <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{task.data_inicio}</span>
+                            )}
+                            {urgency.label && (
+                              <Badge variant="outline" className="text-xs shrink-0 rounded-full">{urgency.label}</Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -204,7 +222,7 @@ export default function MyWork() {
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">Escolha o projeto para a nova tarefa:</p>
             <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Selecionar projeto" />
               </SelectTrigger>
               <SelectContent>
@@ -213,7 +231,7 @@ export default function MyWork() {
                 ))}
               </SelectContent>
             </Select>
-            <Button className="w-full" disabled={!selectedProjectId} onClick={confirmProject}>
+            <Button className="w-full h-11" disabled={!selectedProjectId} onClick={confirmProject}>
               Continuar
             </Button>
           </div>
@@ -221,6 +239,6 @@ export default function MyWork() {
       </Dialog>
 
       <TaskForm open={taskFormOpen} onOpenChange={setTaskFormOpen} onSubmit={handleCreateTask} />
-    </div>
+    </motion.div>
   );
 }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FolderOpen, Trash2, Users, ClipboardList } from "lucide-react";
+import { Plus, FolderOpen, Trash2, Users, ClipboardList, BarChart3 } from "lucide-react";
 import { useProjects, useCreateProject, useDeleteProject } from "@/hooks/useProjects";
 import { ProjectForm } from "@/components/ProjectForm";
 import { UserMenu } from "@/components/UserMenu";

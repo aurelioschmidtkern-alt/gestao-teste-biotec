@@ -10,6 +10,7 @@ import { KanbanBoard } from "@/components/KanbanBoard";
 import { CostsList } from "@/components/CostsList";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useUpdateProject } from "@/hooks/useProjects";
+import { UserMenu } from "@/components/UserMenu";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {

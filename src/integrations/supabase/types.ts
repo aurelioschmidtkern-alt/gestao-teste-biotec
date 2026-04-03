@@ -111,6 +111,7 @@ export type Database = {
           descricao: string | null
           id: string
           nome: string
+          prioridade: string | null
           projeto_id: string
           responsavel: string[] | null
           status: string
@@ -122,6 +123,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           nome: string
+          prioridade?: string | null
           projeto_id: string
           responsavel?: string[] | null
           status?: string
@@ -133,6 +135,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           nome?: string
+          prioridade?: string | null
           projeto_id?: string
           responsavel?: string[] | null
           status?: string

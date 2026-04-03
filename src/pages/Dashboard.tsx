@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, FolderOpen, ListChecks, CheckCircle2, AlertTriangle, DollarSign, Plus } from "lucide-react";
 import { UserMenu } from "@/components/UserMenu";
 import { useDashboard } from "@/hooks/useDashboard";

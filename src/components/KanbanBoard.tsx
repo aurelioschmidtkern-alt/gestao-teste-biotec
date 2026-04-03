@@ -44,6 +44,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
       data_inicio: data.data_inicio || null,
       data_fim: data.data_fim || null,
       status: data.status,
+      prioridade: data.prioridade || null,
     }, { onSuccess: () => toast.success("Tarefa criada!") });
   };
 

@@ -80,7 +80,6 @@ export default function Dashboard() {
             )}
             <UserMenu />
           </div>
-          </div>
         </div>
 
         {/* Summary Cards */}

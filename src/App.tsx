@@ -10,6 +10,7 @@ import Users from "./pages/Users";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import MyWork from "./pages/MyWork";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 

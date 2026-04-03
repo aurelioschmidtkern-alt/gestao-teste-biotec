@@ -1,6 +1,6 @@
 import { BarChart3, ClipboardList, FolderOpen, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useProfile } from "@/hooks/useProfile";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Sidebar,
   SidebarContent,

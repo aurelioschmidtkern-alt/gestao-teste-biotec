@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderOpen, ListChecks, CheckCircle2, AlertTriangle, DollarSign, Plus } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
-import { useProfile } from "@/hooks/useProfile";
+import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/hooks/useCosts";
 import { getTaskUrgency } from "@/lib/taskUrgency";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";

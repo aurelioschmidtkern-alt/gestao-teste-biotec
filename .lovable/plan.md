@@ -1,67 +1,57 @@
 
 
-## Migrar para Lovable Cloud — Banco de Dados
+## Tela de Login com Registro — Plano de Implementação
 
-### Objetivo
-Substituir o armazenamento em localStorage por tabelas no banco de dados do Lovable Cloud para projetos, tarefas e custos.
+### Resumo
+Adicionar autenticação ao sistema com uma tela de login/registro usando Lovable Cloud Auth (Supabase Auth). Criar uma tabela `profiles` para armazenar o nome do usuário. Proteger as rotas existentes sem alterar nenhuma funcionalidade atual.
 
-### Tabelas
+### Database
 
-**projetos**
-- `id` (uuid, PK, auto)
+**Nova tabela: `profiles`**
+- `id` (uuid, PK, FK → auth.users ON DELETE CASCADE)
 - `nome` (text, NOT NULL)
-- `status` (text, default 'Ativo') — valores: Ativo, Pausado, Concluído
-- `responsavel` (text)
-- `created_at` (timestamptz, auto)
+- `status` (text, default 'Ativo')
+- `created_at` (timestamptz, default now())
 
-**tarefas**
-- `id` (uuid, PK, auto)
-- `projeto_id` (uuid, FK → projetos, ON DELETE CASCADE)
-- `nome` (text, NOT NULL)
-- `descricao` (text)
-- `responsavel` (text)
-- `data_inicio` (date)
-- `data_fim` (date)
-- `status` (text, default 'A Fazer') — valores: A Fazer, Em Andamento, Concluído
-- `created_at` (timestamptz, auto)
+**RLS**: Usuários autenticados podem ler/atualizar apenas seu próprio perfil.
 
-**custos**
-- `id` (uuid, PK, auto)
-- `projeto_id` (uuid, FK → projetos, ON DELETE CASCADE)
-- `tipo_custo` (text, NOT NULL) — Fixo, Variável
-- `categoria` (text, NOT NULL) — Software, Mão de obra, Marketing, Outros
-- `valor` (numeric, NOT NULL, CHECK > 0)
-- `data` (date, NOT NULL)
-- `created_at` (timestamptz, auto)
+**Trigger**: Auto-criar perfil ao registrar (usando `raw_user_meta_data->>'nome'`).
 
-### Segurança (RLS)
-Como não há autenticação, as tabelas terão RLS desabilitado com políticas públicas de SELECT, INSERT, UPDATE e DELETE para acesso livre.
+**Tabelas existentes** (projetos, tarefas, custos): As políticas RLS públicas serão mantidas sem alteração, conforme solicitado.
 
-### Mudanças no Código
+### Novos Arquivos
 
-1. **Habilitar Lovable Cloud** e criar as 3 tabelas via migração
-2. **Substituir o ProjectsContext** — trocar localStorage por queries/mutations usando `@tanstack/react-query` + cliente Supabase
-3. **Criar hooks customizados**:
-   - `useProjects` — listar, criar, editar projetos
-   - `useTasks` — CRUD de tarefas por projeto
-   - `useCosts` — CRUD de custos por projeto, com total acumulado
-4. **Inserir dados de exemplo** via SQL (Projeto "Implantação de CRM" com tarefa e custo)
-5. **Manter toda a UI existente** (Dashboard, Kanban, Custos) — apenas trocar a fonte de dados
+1. **`src/pages/Auth.tsx`** — Tela de login/registro
+   - Layout centralizado com card
+   - Cabeçalho: ícone + "Sistema de Gestão" + subtítulo
+   - Alternador de abas: "Entrar" / "Criar conta"
+   - Modo Entrar: campos email e senha + botão "Entrar"
+   - Modo Criar conta: campos nome, email e senha + botão "Criar conta"
+   - Validações client-side (campos obrigatórios, email válido)
+   - Feedback de erro/sucesso via toast
+
+2. **`src/hooks/useAuth.ts`** — Hook de autenticação
+   - `useSession()` — estado da sessão com `onAuthStateChange`
+   - Funções: `signIn`, `signUp` (com nome no metadata), `signOut`
+
+3. **`src/components/ProtectedRoute.tsx`** — Wrapper que redireciona para `/auth` se não autenticado
+
+### Alterações em Arquivos Existentes
+
+- **`src/App.tsx`** — Adicionar rota `/auth` e envolver rotas existentes com `ProtectedRoute`
+- **`src/pages/Index.tsx`** — Adicionar botão de logout no header
 
 ### Fluxo
 ```text
-UI Components
-    ↓
-React Query hooks (useProjects, useTasks, useCosts)
-    ↓
-Supabase Client (@supabase/supabase-js)
-    ↓
-Lovable Cloud Database (PostgreSQL)
+Usuário não autenticado → /auth (login/registro)
+Registro → signUp com metadata {nome} → trigger cria perfil → auto-login → redirect /
+Login → signIn → redirect /
+Logout → signOut → redirect /auth
 ```
 
 ### O que NÃO muda
-- Interface visual e componentes
-- Kanban com drag and drop
-- Formatação de moeda pt-BR
-- Validações de formulário
+- Páginas de projeto, Kanban, custos — zero alterações
+- Estrutura de dados existente (projetos, tarefas, custos)
+- Hooks existentes (useProjects, useTasks, useCosts)
+- Regras de negócio e validações
 

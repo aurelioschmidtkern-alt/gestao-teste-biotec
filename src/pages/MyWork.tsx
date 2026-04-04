@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Calendar, Clock, FolderOpen } from "lucide-react";
+import { Plus, Calendar, Clock, FolderOpen, AlertTriangle } from "lucide-react";
 import { useMyTasks, type MyTask } from "@/hooks/useMyTasks";
 import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";

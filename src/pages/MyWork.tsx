@@ -49,12 +49,22 @@ const GROUP_LABELS: Record<GroupKey, string> = {
 };
 
 function groupTasksByDate(tasks: MyTask[]): Record<GroupKey, MyTask[]> {
-  const groups: Record<GroupKey, MyTask[]> = { today: [], thisWeek: [], nextWeek: [], later: [], noDate: [] };
+  const groups: Record<GroupKey, MyTask[]> = { overdue: [], today: [], thisWeek: [], nextWeek: [], later: [], noDate: [] };
   const now = new Date();
+  const todayStart = startOfDay(now);
   const nwStart = startOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
   const nwEnd = endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
 
   tasks.forEach((task) => {
+    // Check overdue first: data_fim before today
+    if (task.data_fim) {
+      const fim = parseISO(task.data_fim);
+      if (isBefore(fim, todayStart) && task.status !== "Concluído") {
+        groups.overdue.push(task);
+        return;
+      }
+    }
+
     if (!task.data_inicio) { groups.noDate.push(task); return; }
     const d = parseISO(task.data_inicio);
     if (isToday(d)) groups.today.push(task);

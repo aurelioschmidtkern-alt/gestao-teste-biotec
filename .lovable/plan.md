@@ -1,28 +1,28 @@
 
 
-## Excluir Usuário — Plano
+## Expandir Descrição ao Clicar na Tarefa — Plano
 
 ### Resumo
-Adicionar funcionalidade de exclusão de usuário com confirmação, acessível apenas para Administradores.
+Adicionar toggle de expansão nos cards de tarefa em "Meu Trabalho": ao clicar no card, a descrição da tarefa aparece abaixo do nome. Clicar novamente recolhe.
 
 ### Alterações
 
-**1. Edge Function `supabase/functions/manage-users/index.ts`**
-- Adicionar handler para `action === "delete"`:
-  - Recebe `user_id`
-  - Deleta o perfil da tabela `profiles` (cascade vai limpar)
-  - Deleta o usuário via `adminClient.auth.admin.deleteUser(user_id)`
-  - Impedir exclusão do próprio admin (não pode deletar a si mesmo)
+**Arquivo: `src/pages/MyWork.tsx`**
 
-**2. Hook `src/hooks/useUsers.ts`**
-- Adicionar `useDeleteUser()` mutation que chama `invokeManageUsers("delete", { user_id })`
+1. Adicionar estado `expandedTaskId` (string | null) para controlar qual tarefa está expandida
+2. Envolver o card com `onClick` que alterna o `expandedTaskId`
+3. Adicionar `cursor-pointer` ao card
+4. Abaixo do bloco com nome/projeto/badges, renderizar condicionalmente a descrição quando `expandedTaskId === task.id`
+5. Se `task.descricao` for null/vazio, mostrar texto "Sem descrição" em itálico
+6. Impedir que o clique no `Select` de status propague para o card (já é isolado pelo componente)
+7. Usar `AnimatePresence` + `motion.div` para animar a entrada/saída da descrição
 
-**3. Página `src/pages/Users.tsx`**
-- Adicionar botão de lixeira (Trash2 icon) ao lado dos botões de editar/ativar-desativar
-- Adicionar dialog de confirmação (AlertDialog) antes de excluir
-- Chamar `deleteUser.mutate()` ao confirmar
+### Visual da descrição expandida
+- Padding top com separador sutil (`border-t`)
+- Texto `text-sm text-muted-foreground` com whitespace preservado (`whitespace-pre-wrap`)
+- Animação suave de altura com framer-motion
 
-### Segurança
-- A edge function já valida que o caller é Administrador
-- Adicionar validação para impedir auto-exclusão
+### O que NÃO muda
+- Funcionalidade existente (status, badges, criação de tarefa)
+- Outros componentes/páginas
 

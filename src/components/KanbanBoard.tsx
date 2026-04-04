@@ -8,6 +8,7 @@ import { TaskForm } from "./TaskForm";
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type Tarefa } from "@/hooks/useTasks";
 import { toast } from "sonner";
 import { getTaskUrgency } from "@/lib/taskUrgency";
+import { AnimatePresence, motion } from "framer-motion";
 
 const COLUMNS = ["A Fazer", "Em Andamento", "Concluído"] as const;
 

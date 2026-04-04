@@ -136,7 +136,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                     setExpandedTaskId(prev => prev === task.id ? null : task.id);
                                   }
                                 }}
-                                className={`cursor-pointer active:cursor-grabbing border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 group ${
+                                className={`cursor-pointer active:cursor-grabbing border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 group ${task.status === "Concluído" ? "opacity-60" : ""} ${
                                   snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30 rotate-1" : ""
                                 } ${urgency.borderClass}`}
                               >

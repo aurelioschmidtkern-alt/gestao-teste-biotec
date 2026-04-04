@@ -1,31 +1,27 @@
 
 
-## Adicionar Campo de Descrição ao Projeto
+## Adicionar Seção "Atrasadas" acima de "Hoje" no Meu Trabalho
 
-### Alterações necessárias
+### Resumo
+Criar um novo grupo "Atrasadas" que aparece como primeira seção, acima de "Hoje". Tarefas com `data_fim` anterior à data atual (e status diferente de "Concluído") serão agrupadas nesta seção com destaque visual vermelho.
 
-**1. Migration — adicionar coluna `descricao` na tabela `projetos`**
-```sql
-ALTER TABLE public.projetos ADD COLUMN descricao text;
-```
-Coluna nullable, sem default — projetos existentes ficam com `null`.
+### Alterações
 
-**2. `src/components/ProjectForm.tsx`**
-- Adicionar estado `descricao` inicializado com `initial?.descricao ?? ""`
-- Adicionar campo `Textarea` entre Nome e Status com label "Descrição"
-- Incluir `descricao` no objeto passado ao `onSubmit`
-- Atualizar a interface `onSubmit` para incluir `descricao: string`
-- Resetar `descricao` ao criar novo projeto
+**Arquivo: `src/pages/MyWork.tsx`**
 
-**3. `src/pages/Index.tsx`**
-- Atualizar o `onSubmit` do `ProjectForm` para passar `descricao` ao `createProject.mutate`
-- Opcionalmente exibir trecho da descrição nos cards de projeto (truncado em 2 linhas)
+1. Adicionar `"overdue"` ao type `GroupKey` e ao `GROUP_LABELS`:
+   - `overdue: "Atrasadas"`
 
-**4. `src/pages/ProjectDetail.tsx`**
-- Atualizar o `onSubmit` do formulário de edição para incluir `descricao`
-- Exibir a descrição do projeto no header da página de detalhes
+2. Atualizar `groupTasksByDate` para classificar tarefas atrasadas:
+   - Verificar `task.data_fim`: se existir e `parseISO(data_fim) < today`, adicionar ao grupo `overdue`
+   - A classificação por atraso tem prioridade sobre a classificação por `data_inicio`
+
+3. Atualizar a ordem dos grupos para `["overdue", "today", "thisWeek", "nextWeek", "later", "noDate"]`
+
+4. Usar ícone `AlertTriangle` (Lucide) e cor vermelha no header do grupo "Atrasadas" para destaque visual
 
 ### O que NÃO muda
-- Hooks `useProjects` / `useCreateProject` / `useUpdateProject` já usam tipagem genérica do Supabase, então aceitarão o novo campo automaticamente após a migration
-- Lógica de permissões, RLS, outras páginas
+- Funcionalidade existente (status, expansão, criação)
+- Outros grupos continuam funcionando igual
+- Lógica de urgência nos cards (border colorido) permanece
 

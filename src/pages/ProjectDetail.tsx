@@ -61,6 +61,9 @@ export default function ProjectDetail() {
             {projeto.responsavel && `Responsável: ${projeto.responsavel} · `}
             Criado em {new Date(projeto.created_at).toLocaleDateString("pt-BR")}
           </p>
+          {(projeto as any).descricao && (
+            <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{(projeto as any).descricao}</p>
+          )}
         </div>
         {canEditProject && (
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shadow-sm w-full sm:w-auto">

@@ -1,32 +1,41 @@
 
 
-## Formatar Datas para dd/mm/aaaa (PT-BR)
+## Categorizar Tarefas por Data Fim no Meu Trabalho
 
-### Resumo
-Criar uma função utilitária `formatDateBR` e aplicá-la em todos os locais onde datas são exibidas no sistema. As datas são armazenadas como `YYYY-MM-DD` no banco — a formatação é apenas visual.
+### Problema atual
+A função `groupTasksByDate` usa `data_inicio` para agrupar tarefas em "Hoje", "Esta Semana", etc. Apenas o grupo "Atrasadas" usa `data_fim`. O usuário quer que **todos os grupos** sejam baseados em `data_fim`.
 
-### Alterações
+### Alteração
 
-**1. `src/lib/utils.ts` — adicionar função utilitária**
+**Arquivo: `src/pages/MyWork.tsx` — função `groupTasksByDate`**
+
+Trocar a lógica de agrupamento de `data_inicio` para `data_fim`:
+
 ```typescript
-export function formatDateBR(dateStr: string | null | undefined): string {
-  if (!dateStr) return "";
-  const [y, m, d] = dateStr.split("-");
-  return `${d}/${m}/${y}`;
-}
+tasks.forEach((task) => {
+  if (!task.data_fim) { groups.noDate.push(task); return; }
+  const fim = parseISO(task.data_fim);
+  
+  if (isBefore(fim, todayStart) && task.status !== "Concluído") {
+    groups.overdue.push(task);
+  } else if (isToday(fim)) {
+    groups.today.push(task);
+  } else if (isThisWeek(fim, { weekStartsOn: 1 })) {
+    groups.thisWeek.push(task);
+  } else if (!isBefore(fim, nwStart) && !isAfter(fim, nwEnd)) {
+    groups.nextWeek.push(task);
+  } else if (isAfter(fim, nwEnd)) {
+    groups.later.push(task);
+  } else {
+    groups.later.push(task);
+  }
+});
 ```
 
-**2. `src/pages/MyWork.tsx`**
-- Linha 219: `{task.data_inicio}` → `{formatDateBR(task.data_inicio)}`
-
-**3. `src/components/KanbanBoard.tsx`**
-- Linha 167: `{task.data_inicio}{task.data_fim ? ` → ${task.data_fim}` : ""}` → `{formatDateBR(task.data_inicio)}{task.data_fim ? ` → ${formatDateBR(task.data_fim)}` : ""}`
-
-**4. `src/components/CostsList.tsx`**
-- Linhas 96 e 130: já usam `toLocaleDateString("pt-BR")` — esses já estão corretos, mas serão padronizados para usar `formatDateBR` por consistência.
+Também atualizar o hook `useMyTasks` para ordenar por `data_fim` em vez de `data_inicio`.
 
 ### O que NÃO muda
-- Formato de armazenamento no banco (continua YYYY-MM-DD)
-- Inputs de data nos formulários (HTML `type="date"` usa o formato do navegador)
-- Lógica de agrupamento e urgência (operam sobre strings ISO)
+- Grupos e labels permanecem os mesmos
+- Visual, expansão, status — tudo igual
+- Lógica de "Atrasadas" já usa `data_fim`, então continua consistente
 

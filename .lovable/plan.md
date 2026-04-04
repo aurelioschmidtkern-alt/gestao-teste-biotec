@@ -1,28 +1,28 @@
 
 
-## Expandir Descrição ao Clicar na Tarefa — Plano
+## Expandir Descrição no Kanban — Plano
 
 ### Resumo
-Adicionar toggle de expansão nos cards de tarefa em "Meu Trabalho": ao clicar no card, a descrição da tarefa aparece abaixo do nome. Clicar novamente recolhe.
+Adicionar toggle de expansão nos cards do Kanban: ao clicar no card, a descrição aparece abaixo das informações existentes. Clicar novamente recolhe. Mesmo padrão já implementado em "Meu Trabalho".
 
 ### Alterações
 
-**Arquivo: `src/pages/MyWork.tsx`**
+**Arquivo: `src/components/KanbanBoard.tsx`**
 
-1. Adicionar estado `expandedTaskId` (string | null) para controlar qual tarefa está expandida
-2. Envolver o card com `onClick` que alterna o `expandedTaskId`
-3. Adicionar `cursor-pointer` ao card
-4. Abaixo do bloco com nome/projeto/badges, renderizar condicionalmente a descrição quando `expandedTaskId === task.id`
-5. Se `task.descricao` for null/vazio, mostrar texto "Sem descrição" em itálico
-6. Impedir que o clique no `Select` de status propague para o card (já é isolado pelo componente)
-7. Usar `AnimatePresence` + `motion.div` para animar a entrada/saída da descrição
+1. Adicionar estado `expandedTaskId` (string | null)
+2. Adicionar `onClick` no `Card` que alterna `expandedTaskId`, com verificação para não disparar durante drag (`snapshot.isDragging`)
+3. Adicionar `e.stopPropagation()` nos botões de editar e excluir para não conflitar com o toggle
+4. Após o `CardContent` existente, renderizar condicionalmente a descrição com `AnimatePresence` + `motion.div`
+5. Se `task.descricao` for null/vazio, mostrar "Sem descrição" em itálico
+6. Importar `AnimatePresence` e `motion` de `framer-motion`
 
-### Visual da descrição expandida
-- Padding top com separador sutil (`border-t`)
-- Texto `text-sm text-muted-foreground` com whitespace preservado (`whitespace-pre-wrap`)
-- Animação suave de altura com framer-motion
+### Visual
+- Separador `border-t` sutil acima da descrição
+- Texto `text-xs text-muted-foreground whitespace-pre-wrap`
+- Animação suave de altura/opacidade
 
 ### O que NÃO muda
-- Funcionalidade existente (status, badges, criação de tarefa)
-- Outros componentes/páginas
+- Drag and drop funcionalidade
+- Botões de editar/excluir
+- Layout das colunas
 

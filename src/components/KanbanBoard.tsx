@@ -136,14 +136,14 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                     setExpandedTaskId(prev => prev === task.id ? null : task.id);
                                   }
                                 }}
-                                className={`cursor-pointer active:cursor-grabbing border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 group ${
+                                className={`cursor-pointer active:cursor-grabbing border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 group ${task.status === "Concluído" ? "opacity-60" : ""} ${
                                   snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30 rotate-1" : ""
                                 } ${urgency.borderClass}`}
                               >
                                 <CardHeader className="p-3 pb-1">
                                   <div className="flex items-start gap-1.5">
                                     <GripVertical className="h-4 w-4 text-muted-foreground/30 mt-0.5 group-hover:text-muted-foreground/60 transition-colors" />
-                                    <CardTitle className="text-sm flex-1 font-medium">{task.nome}</CardTitle>
+                                    <CardTitle className={`text-sm flex-1 font-medium ${task.status === "Concluído" ? "line-through text-muted-foreground" : ""}`}>{task.nome}</CardTitle>
                                     <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
                                       <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}>
                                         <Pencil className="h-3 w-3" />

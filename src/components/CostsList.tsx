@@ -93,41 +93,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                     </span>
                     <span className="text-sm">{c.categoria}</span>
                     <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(c.data + "T00:00:00").toLocaleDateString("pt-BR")}</span>
-                    <div className="flex gap-0.5">
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* Mobile Cards */}
-              <div className="md:hidden space-y-3">
-                {costs.map(c => (
-                  <div key={c.id} className="p-3 rounded-lg border border-border/50 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge className={`rounded-full text-xs ${c.tipo_custo === "Fixo" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-                          {c.tipo_custo}
-                        </Badge>
-                        <span className="text-sm font-medium">{c.categoria}</span>
-                      </div>
-                      <div className="flex gap-0.5">
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
-<span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
+                    <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
                     <div className="flex gap-0.5">
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
                         <Pencil className="h-3.5 w-3.5" />

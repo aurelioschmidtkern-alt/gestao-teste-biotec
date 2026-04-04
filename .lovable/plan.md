@@ -1,27 +1,32 @@
 
 
-## Adicionar Seção "Atrasadas" acima de "Hoje" no Meu Trabalho
+## Formatar Datas para dd/mm/aaaa (PT-BR)
 
 ### Resumo
-Criar um novo grupo "Atrasadas" que aparece como primeira seção, acima de "Hoje". Tarefas com `data_fim` anterior à data atual (e status diferente de "Concluído") serão agrupadas nesta seção com destaque visual vermelho.
+Criar uma função utilitária `formatDateBR` e aplicá-la em todos os locais onde datas são exibidas no sistema. As datas são armazenadas como `YYYY-MM-DD` no banco — a formatação é apenas visual.
 
 ### Alterações
 
-**Arquivo: `src/pages/MyWork.tsx`**
+**1. `src/lib/utils.ts` — adicionar função utilitária**
+```typescript
+export function formatDateBR(dateStr: string | null | undefined): string {
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+```
 
-1. Adicionar `"overdue"` ao type `GroupKey` e ao `GROUP_LABELS`:
-   - `overdue: "Atrasadas"`
+**2. `src/pages/MyWork.tsx`**
+- Linha 219: `{task.data_inicio}` → `{formatDateBR(task.data_inicio)}`
 
-2. Atualizar `groupTasksByDate` para classificar tarefas atrasadas:
-   - Verificar `task.data_fim`: se existir e `parseISO(data_fim) < today`, adicionar ao grupo `overdue`
-   - A classificação por atraso tem prioridade sobre a classificação por `data_inicio`
+**3. `src/components/KanbanBoard.tsx`**
+- Linha 167: `{task.data_inicio}{task.data_fim ? ` → ${task.data_fim}` : ""}` → `{formatDateBR(task.data_inicio)}{task.data_fim ? ` → ${formatDateBR(task.data_fim)}` : ""}`
 
-3. Atualizar a ordem dos grupos para `["overdue", "today", "thisWeek", "nextWeek", "later", "noDate"]`
-
-4. Usar ícone `AlertTriangle` (Lucide) e cor vermelha no header do grupo "Atrasadas" para destaque visual
+**4. `src/components/CostsList.tsx`**
+- Linhas 96 e 130: já usam `toLocaleDateString("pt-BR")` — esses já estão corretos, mas serão padronizados para usar `formatDateBR` por consistência.
 
 ### O que NÃO muda
-- Funcionalidade existente (status, expansão, criação)
-- Outros grupos continuam funcionando igual
-- Lógica de urgência nos cards (border colorido) permanece
+- Formato de armazenamento no banco (continua YYYY-MM-DD)
+- Inputs de data nos formulários (HTML `type="date"` usa o formato do navegador)
+- Lógica de agrupamento e urgência (operam sobre strings ISO)
 

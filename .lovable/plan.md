@@ -1,24 +1,29 @@
 
 
-## Exibir Data Fim nos Cards do Meu Trabalho
+## Risco (line-through) nas Tarefas Concluídas no Kanban
 
 ### Alteração
 
-**Arquivo: `src/pages/MyWork.tsx` — linhas 219-221**
+**Arquivo: `src/components/KanbanBoard.tsx` — linha 146**
 
-Trocar `task.data_inicio` por `task.data_fim`:
+Adicionar `line-through` condicional no título da tarefa quando o status é "Concluído":
 
 ```typescript
 // De:
-{task.data_inicio && (
-  <span className="...">{formatDateBR(task.data_inicio)}</span>
-)}
+<CardTitle className="text-sm flex-1 font-medium">{task.nome}</CardTitle>
 
 // Para:
-{task.data_fim && (
-  <span className="...">{formatDateBR(task.data_fim)}</span>
-)}
+<CardTitle className={`text-sm flex-1 font-medium ${task.status === "Concluído" ? "line-through text-muted-foreground" : ""}`}>{task.nome}</CardTitle>
 ```
 
-Alteração de uma única linha. Nada mais muda.
+Também aplicar opacidade reduzida no card inteiro para reforçar visualmente:
+
+```typescript
+// Linha 139 — adicionar ao className do Card:
+${task.status === "Concluído" ? "opacity-60" : ""}
+```
+
+### Resultado
+- Ao arrastar para "Concluído", o nome da tarefa ganha um risco e o card fica levemente esmaecido
+- Ao mover de volta para outra coluna, o estilo volta ao normal
 

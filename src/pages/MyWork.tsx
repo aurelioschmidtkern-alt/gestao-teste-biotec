@@ -83,6 +83,7 @@ export default function MyWork() {
   const [projectSelectOpen, setProjectSelectOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   const grouped = groupTasksByDate(tasks);
 

@@ -44,6 +44,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
   const [formOpen, setFormOpen] = useState(false);
   const [formColumn, setFormColumn] = useState<string>("A Fazer");
   const [editingTask, setEditingTask] = useState<Tarefa | null>(null);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;

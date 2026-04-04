@@ -57,22 +57,22 @@ function groupTasksByDate(tasks: MyTask[]): Record<GroupKey, MyTask[]> {
   const nwEnd = endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
 
   tasks.forEach((task) => {
-    // Check overdue first: data_fim before today
-    if (task.data_fim) {
-      const fim = parseISO(task.data_fim);
-      if (isBefore(fim, todayStart) && task.status !== "Concluído") {
-        groups.overdue.push(task);
-        return;
-      }
-    }
+    if (!task.data_fim) { groups.noDate.push(task); return; }
+    const fim = parseISO(task.data_fim);
 
-    if (!task.data_inicio) { groups.noDate.push(task); return; }
-    const d = parseISO(task.data_inicio);
-    if (isToday(d)) groups.today.push(task);
-    else if (isThisWeek(d, { weekStartsOn: 1 })) groups.thisWeek.push(task);
-    else if (!isBefore(d, nwStart) && !isAfter(d, nwEnd)) groups.nextWeek.push(task);
-    else if (isAfter(d, nwEnd)) groups.later.push(task);
-    else groups.later.push(task);
+    if (isBefore(fim, todayStart) && task.status !== "Concluído") {
+      groups.overdue.push(task);
+    } else if (isToday(fim)) {
+      groups.today.push(task);
+    } else if (isThisWeek(fim, { weekStartsOn: 1 })) {
+      groups.thisWeek.push(task);
+    } else if (!isBefore(fim, nwStart) && !isAfter(fim, nwEnd)) {
+      groups.nextWeek.push(task);
+    } else if (isAfter(fim, nwEnd)) {
+      groups.later.push(task);
+    } else {
+      groups.later.push(task);
+    }
   });
   return groups;
 }

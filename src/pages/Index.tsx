@@ -148,7 +148,7 @@ export default function Index() {
         open={formOpen}
         onOpenChange={setFormOpen}
         onSubmit={(data) => {
-          createProject.mutate(data, { onSuccess: () => toast.success("Projeto criado!") });
+          createProject.mutate(data as any, { onSuccess: () => toast.success("Projeto criado!") });
         }}
       />
     </div>

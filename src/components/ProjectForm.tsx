@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useActiveUsers } from "@/hooks/useActiveUsers";
 import type { Projeto } from "@/hooks/useProjects";
@@ -10,12 +11,13 @@ import type { Projeto } from "@/hooks/useProjects";
 interface ProjectFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { nome: string; status: string; responsavel: string }) => void;
+  onSubmit: (data: { nome: string; descricao: string; status: string; responsavel: string }) => void;
   initial?: Projeto | null;
 }
 
 export function ProjectForm({ open, onOpenChange, onSubmit, initial }: ProjectFormProps) {
   const [nome, setNome] = useState(initial?.nome ?? "");
+  const [descricao, setDescricao] = useState((initial as any)?.descricao ?? "");
   const [status, setStatus] = useState(initial?.status ?? "Ativo");
   const [responsavel, setResponsavel] = useState(initial?.responsavel ?? "");
   const { data: users = [] } = useActiveUsers();
@@ -23,8 +25,8 @@ export function ProjectForm({ open, onOpenChange, onSubmit, initial }: ProjectFo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim()) return;
-    onSubmit({ nome: nome.trim(), status, responsavel });
-    if (!initial) { setNome(""); setResponsavel(""); setStatus("Ativo"); }
+    onSubmit({ nome: nome.trim(), descricao: descricao.trim(), status, responsavel });
+    if (!initial) { setNome(""); setDescricao(""); setResponsavel(""); setStatus("Ativo"); }
     onOpenChange(false);
   };
 
@@ -38,6 +40,10 @@ export function ProjectForm({ open, onOpenChange, onSubmit, initial }: ProjectFo
           <div>
             <Label htmlFor="nome">Nome *</Label>
             <Input id="nome" value={nome} onChange={e => setNome(e.target.value)} required />
+          </div>
+          <div>
+            <Label htmlFor="descricao">Descrição</Label>
+            <Textarea id="descricao" value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descreva o projeto..." rows={3} />
           </div>
           <div>
             <Label htmlFor="status">Status</Label>

@@ -3,9 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, UserCheck, UserX } from "lucide-react";
+import { Plus, Pencil, UserCheck, UserX, Trash2 } from "lucide-react";
 import { UserForm } from "@/components/UserForm";
-import { useUsers, useCreateUser, useUpdateUser, type UserProfile } from "@/hooks/useUsers";
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, type UserProfile } from "@/hooks/useUsers";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -32,8 +42,10 @@ export default function Users() {
   const { data: users = [], isLoading, error } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     if (!permissionsLoading && !canManageUsers) navigate("/", { replace: true });
@@ -63,6 +75,14 @@ export default function Users() {
     const newStatus = user.status === "Ativo" ? "Inativo" : "Ativo";
     updateUser.mutate({ user_id: user.user_id, status: newStatus }, {
       onSuccess: () => toast.success(`Usuário ${newStatus === "Ativo" ? "ativado" : "inativado"}`),
+      onError: (e) => toast.error(e.message),
+    });
+  };
+
+  const handleDelete = () => {
+    if (!deletingUser) return;
+    deleteUser.mutate({ user_id: deletingUser.user_id }, {
+      onSuccess: () => { toast.success("Usuário excluído!"); setDeletingUser(null); },
       onError: (e) => toast.error(e.message),
     });
   };
@@ -130,6 +150,9 @@ export default function Users() {
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => toggleStatus(u)}>
                         {u.status === "Ativo" ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
                       </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeletingUser(u)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -146,6 +169,9 @@ export default function Users() {
                         </Button>
                         <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => toggleStatus(u)}>
                           {u.status === "Ativo" ? <UserX className="h-3.5 w-3.5" /> : <UserCheck className="h-3.5 w-3.5" />}
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeletingUser(u)}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -165,6 +191,23 @@ export default function Users() {
 
       <UserForm open={formOpen} onOpenChange={setFormOpen} onSubmit={handleCreate} />
       <UserForm open={!!editingUser} onOpenChange={open => { if (!open) setEditingUser(null); }} onSubmit={handleEdit} initial={editingUser} />
+
+      <AlertDialog open={!!deletingUser} onOpenChange={open => { if (!open) setDeletingUser(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deletingUser?.nome}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }

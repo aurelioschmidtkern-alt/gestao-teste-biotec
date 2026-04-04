@@ -6,6 +6,7 @@ import { Plus, Trash2, Pencil, DollarSign, Hash } from "lucide-react";
 import { CostForm } from "./CostForm";
 import { useCosts, useCreateCost, useUpdateCost, useDeleteCost, formatCurrency, type Custo } from "@/hooks/useCosts";
 import { toast } from "sonner";
+import { formatDateBR } from "@/lib/utils";
 
 export function CostsList({ projetoId }: { projetoId: string }) {
   const { data: costs = [], isLoading } = useCosts(projetoId);

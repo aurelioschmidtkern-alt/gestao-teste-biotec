@@ -8,6 +8,7 @@ import { TaskForm } from "./TaskForm";
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type Tarefa } from "@/hooks/useTasks";
 import { toast } from "sonner";
 import { getTaskUrgency } from "@/lib/taskUrgency";
+import { formatDateBR } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
 const COLUMNS = ["A Fazer", "Em Andamento", "Concluído"] as const;
@@ -164,7 +165,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                   )}
                                   {task.data_inicio && (
                                     <div className="text-muted-foreground/70">
-                                      {task.data_inicio}{task.data_fim ? ` → ${task.data_fim}` : ""}
+                                      {formatDateBR(task.data_inicio)}{task.data_fim ? ` → ${formatDateBR(task.data_fim)}` : ""}
                                     </div>
                                   )}
                                   {urgency.label && (

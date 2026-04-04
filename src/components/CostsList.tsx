@@ -6,6 +6,7 @@ import { Plus, Trash2, Pencil, DollarSign, Hash } from "lucide-react";
 import { CostForm } from "./CostForm";
 import { useCosts, useCreateCost, useUpdateCost, useDeleteCost, formatCurrency, type Custo } from "@/hooks/useCosts";
 import { toast } from "sonner";
+import { formatDateBR } from "@/lib/utils";
 
 export function CostsList({ projetoId }: { projetoId: string }) {
   const { data: costs = [], isLoading } = useCosts(projetoId);
@@ -93,7 +94,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                     </span>
                     <span className="text-sm">{c.categoria}</span>
                     <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(c.data + "T00:00:00").toLocaleDateString("pt-BR")}</span>
+                    <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
                     <div className="flex gap-0.5">
                       <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
                         <Pencil className="h-3.5 w-3.5" />
@@ -127,7 +128,7 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
-                      <span className="text-xs text-muted-foreground">{new Date(c.data + "T00:00:00").toLocaleDateString("pt-BR")}</span>
+                      <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
                     </div>
                   </div>
                 ))}

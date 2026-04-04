@@ -22,6 +22,7 @@ import {
   parseISO,
   isBefore,
   isAfter,
+  startOfDay,
 } from "date-fns";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -36,9 +37,10 @@ const PRIORITY_COLORS: Record<string, string> = {
   Alta: "bg-red-100 text-red-700",
 };
 
-type GroupKey = "today" | "thisWeek" | "nextWeek" | "later" | "noDate";
+type GroupKey = "overdue" | "today" | "thisWeek" | "nextWeek" | "later" | "noDate";
 
 const GROUP_LABELS: Record<GroupKey, string> = {
+  overdue: "Atrasadas",
   today: "Hoje",
   thisWeek: "Esta Semana",
   nextWeek: "Semana que Vem",

@@ -167,9 +167,9 @@ export default function MyWork() {
             return (
               <motion.div key={key} variants={fadeInUp}>
                 <div className="flex items-center gap-2.5 mb-3">
-                  {key === "today" ? <Calendar className="h-4 w-4 text-primary" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
-                  <h2 className="font-semibold text-base">{GROUP_LABELS[key]}</h2>
-                  <Badge variant="secondary" className="rounded-full text-xs">{items.length}</Badge>
+                  {key === "overdue" ? <AlertTriangle className="h-4 w-4 text-destructive" /> : key === "today" ? <Calendar className="h-4 w-4 text-primary" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
+                  <h2 className={`font-semibold text-base ${key === "overdue" ? "text-destructive" : ""}`}>{GROUP_LABELS[key]}</h2>
+                  <Badge variant={key === "overdue" ? "destructive" : "secondary"} className="rounded-full text-xs">{items.length}</Badge>
                 </div>
                 <div className="space-y-2">
                   {items.map((task) => {

@@ -216,8 +216,8 @@ export default function MyWork() {
                                   {task.prioridade}
                                 </Badge>
                               )}
-{task.data_inicio && (
-                                <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{formatDateBR(task.data_inicio)}</span>
+{task.data_fim && (
+                                <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{formatDateBR(task.data_fim)}</span>
                               )}
                               {urgency.label && (
                                 <Badge variant="outline" className="text-xs shrink-0 rounded-full">{urgency.label}</Badge>

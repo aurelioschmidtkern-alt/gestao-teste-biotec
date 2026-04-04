@@ -42,8 +42,10 @@ export default function Users() {
   const { data: users = [], isLoading, error } = useUsers();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     if (!permissionsLoading && !canManageUsers) navigate("/", { replace: true });

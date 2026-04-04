@@ -3,9 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, UserCheck, UserX } from "lucide-react";
+import { Plus, Pencil, UserCheck, UserX, Trash2 } from "lucide-react";
 import { UserForm } from "@/components/UserForm";
-import { useUsers, useCreateUser, useUpdateUser, type UserProfile } from "@/hooks/useUsers";
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, type UserProfile } from "@/hooks/useUsers";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 import { motion } from "framer-motion";

@@ -16,7 +16,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify caller is admin
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -29,7 +28,6 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check caller is admin
     const { data: callerProfile } = await adminClient.from("profiles").select("perfil").eq("user_id", callerId).single();
     if (callerProfile?.perfil !== "Administrador") {
       return new Response(JSON.stringify({ error: "Apenas administradores podem gerenciar usuários" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -52,8 +50,7 @@ Deno.serve(async (req) => {
       if (error) {
         return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      // Update perfil if not default
-      if (perfil && perfil !== "Usuário") {
+      if (perfil && perfil !== "Funcionario") {
         await adminClient.from("profiles").update({ perfil }).eq("user_id", user.user.id);
       }
       return new Response(JSON.stringify({ user: user.user }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -80,12 +77,29 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    if (action === "delete") {
+      const { user_id } = body;
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: "user_id é obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (user_id === callerId) {
+        return new Response(JSON.stringify({ error: "Você não pode excluir a si mesmo" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      // Delete profile first
+      await adminClient.from("profiles").delete().eq("user_id", user_id);
+      // Delete auth user
+      const { error } = await adminClient.auth.admin.deleteUser(user_id);
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     if (action === "list") {
       const { data: profiles, error } = await adminClient.from("profiles").select("*").order("created_at", { ascending: false });
       if (error) {
         return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      // Get emails from auth
       const { data: authUsers } = await adminClient.auth.admin.listUsers();
       const emailMap = new Map(authUsers?.users?.map(u => [u.id, u.email]) ?? []);
       const enriched = profiles.map(p => ({ ...p, email: emailMap.get(p.user_id) ?? "" }));

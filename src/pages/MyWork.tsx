@@ -163,11 +163,15 @@ export default function MyWork() {
                   {items.map((task) => {
                     const urgency = getTaskUrgency(task.data_fim, task.status);
                     return (
-                      <Card key={task.id} className={`shadow-sm border-border/50 hover:shadow-md transition-all duration-200 border-l-[3px] ${urgency.borderClass}`}>
+                      <Card
+                        key={task.id}
+                        className={`shadow-sm border-border/50 hover:shadow-md transition-all duration-200 border-l-[3px] cursor-pointer ${urgency.borderClass}`}
+                        onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                      >
                         <CardContent className="p-3 sm:p-4">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                             <div className="flex items-center gap-3 sm:gap-4">
-                              <div className="w-28 sm:w-36 shrink-0">
+                              <div className="w-28 sm:w-36 shrink-0" onClick={(e) => e.stopPropagation()}>
                                 <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
                                   <SelectTrigger className="h-8 text-xs rounded-lg">
                                     <SelectValue />
@@ -207,6 +211,22 @@ export default function MyWork() {
                               )}
                             </div>
                           </div>
+                          <AnimatePresence>
+                            {expandedTaskId === task.id && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1, transition: { duration: 0.25, ease: "easeOut" } }}
+                                exit={{ height: 0, opacity: 0, transition: { duration: 0.2, ease: "easeIn" } }}
+                                className="overflow-hidden"
+                              >
+                                <div className="border-t border-border/50 pt-3 mt-3">
+                                  <p className={`text-sm text-muted-foreground whitespace-pre-wrap ${!task.descricao ? "italic" : ""}`}>
+                                    {task.descricao || "Sem descrição"}
+                                  </p>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </CardContent>
                       </Card>
                     );

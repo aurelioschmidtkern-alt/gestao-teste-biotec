@@ -93,7 +93,7 @@ export default function ProjectDetail() {
         onOpenChange={setEditOpen}
         initial={projeto}
         onSubmit={(data) => {
-          updateProject.mutate({ id: projeto.id, ...data }, {
+          updateProject.mutate({ id: projeto.id, ...data } as any, {
             onSuccess: () => toast.success("Projeto atualizado!"),
           });
         }}

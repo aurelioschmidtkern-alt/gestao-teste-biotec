@@ -42,6 +42,10 @@ export function ProjectForm({ open, onOpenChange, onSubmit, initial }: ProjectFo
             <Input id="nome" value={nome} onChange={e => setNome(e.target.value)} required />
           </div>
           <div>
+            <Label htmlFor="descricao">Descrição</Label>
+            <Textarea id="descricao" value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Descreva o projeto..." rows={3} />
+          </div>
+          <div>
             <Label htmlFor="status">Status</Label>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>

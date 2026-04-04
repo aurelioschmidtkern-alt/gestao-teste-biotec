@@ -130,7 +130,12 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`cursor-grab active:cursor-grabbing border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 group ${
+                                onClick={() => {
+                                  if (!snapshot.isDragging) {
+                                    setExpandedTaskId(prev => prev === task.id ? null : task.id);
+                                  }
+                                }}
+                                className={`cursor-pointer active:cursor-grabbing border-l-[3px] shadow-sm hover:shadow-md transition-all duration-200 group ${
                                   snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30 rotate-1" : ""
                                 } ${urgency.borderClass}`}
                               >
@@ -139,10 +144,10 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                     <GripVertical className="h-4 w-4 text-muted-foreground/30 mt-0.5 group-hover:text-muted-foreground/60 transition-colors" />
                                     <CardTitle className="text-sm flex-1 font-medium">{task.nome}</CardTitle>
                                     <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingTask(task)}>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}>
                                         <Pencil className="h-3 w-3" />
                                       </Button>
-                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => deleteTask.mutate({ id: task.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Tarefa excluída") })}>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); deleteTask.mutate({ id: task.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Tarefa excluída") }); }}>
                                         <Trash2 className="h-3 w-3" />
                                       </Button>
                                     </div>
@@ -165,6 +170,23 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                   {urgency.label && (
                                     <Badge variant="outline" className="text-[10px] rounded-full px-2 py-0">{urgency.label}</Badge>
                                   )}
+                                  <AnimatePresence>
+                                    {expandedTaskId === task.id && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden"
+                                      >
+                                        <div className="border-t border-border/50 pt-2 mt-1.5">
+                                          <p className={`text-xs text-muted-foreground whitespace-pre-wrap ${!task.descricao ? "italic" : ""}`}>
+                                            {task.descricao || "Sem descrição"}
+                                          </p>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                 </CardContent>
                               </Card>
                             );

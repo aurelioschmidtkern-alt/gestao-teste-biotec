@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Calendar, Clock, FolderOpen } from "lucide-react";
+import { Plus, Calendar, Clock, FolderOpen, AlertTriangle } from "lucide-react";
 import { useMyTasks, type MyTask } from "@/hooks/useMyTasks";
 import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
@@ -22,6 +22,7 @@ import {
   parseISO,
   isBefore,
   isAfter,
+  startOfDay,
 } from "date-fns";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -36,9 +37,10 @@ const PRIORITY_COLORS: Record<string, string> = {
   Alta: "bg-red-100 text-red-700",
 };
 
-type GroupKey = "today" | "thisWeek" | "nextWeek" | "later" | "noDate";
+type GroupKey = "overdue" | "today" | "thisWeek" | "nextWeek" | "later" | "noDate";
 
 const GROUP_LABELS: Record<GroupKey, string> = {
+  overdue: "Atrasadas",
   today: "Hoje",
   thisWeek: "Esta Semana",
   nextWeek: "Semana que Vem",
@@ -47,12 +49,22 @@ const GROUP_LABELS: Record<GroupKey, string> = {
 };
 
 function groupTasksByDate(tasks: MyTask[]): Record<GroupKey, MyTask[]> {
-  const groups: Record<GroupKey, MyTask[]> = { today: [], thisWeek: [], nextWeek: [], later: [], noDate: [] };
+  const groups: Record<GroupKey, MyTask[]> = { overdue: [], today: [], thisWeek: [], nextWeek: [], later: [], noDate: [] };
   const now = new Date();
+  const todayStart = startOfDay(now);
   const nwStart = startOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
   const nwEnd = endOfWeek(addWeeks(now, 1), { weekStartsOn: 1 });
 
   tasks.forEach((task) => {
+    // Check overdue first: data_fim before today
+    if (task.data_fim) {
+      const fim = parseISO(task.data_fim);
+      if (isBefore(fim, todayStart) && task.status !== "Concluído") {
+        groups.overdue.push(task);
+        return;
+      }
+    }
+
     if (!task.data_inicio) { groups.noDate.push(task); return; }
     const d = parseISO(task.data_inicio);
     if (isToday(d)) groups.today.push(task);
@@ -155,9 +167,9 @@ export default function MyWork() {
             return (
               <motion.div key={key} variants={fadeInUp}>
                 <div className="flex items-center gap-2.5 mb-3">
-                  {key === "today" ? <Calendar className="h-4 w-4 text-primary" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
-                  <h2 className="font-semibold text-base">{GROUP_LABELS[key]}</h2>
-                  <Badge variant="secondary" className="rounded-full text-xs">{items.length}</Badge>
+                  {key === "overdue" ? <AlertTriangle className="h-4 w-4 text-destructive" /> : key === "today" ? <Calendar className="h-4 w-4 text-primary" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
+                  <h2 className={`font-semibold text-base ${key === "overdue" ? "text-destructive" : ""}`}>{GROUP_LABELS[key]}</h2>
+                  <Badge variant={key === "overdue" ? "destructive" : "secondary"} className="rounded-full text-xs">{items.length}</Badge>
                 </div>
                 <div className="space-y-2">
                   {items.map((task) => {

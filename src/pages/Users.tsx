@@ -79,6 +79,14 @@ export default function Users() {
     });
   };
 
+  const handleDelete = () => {
+    if (!deletingUser) return;
+    deleteUser.mutate({ user_id: deletingUser.user_id }, {
+      onSuccess: () => { toast.success("Usuário excluído!"); setDeletingUser(null); },
+      onError: (e) => toast.error(e.message),
+    });
+  };
+
   return (
     <motion.div
       className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8"

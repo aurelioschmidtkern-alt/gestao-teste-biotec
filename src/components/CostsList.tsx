@@ -132,6 +132,9 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                       <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
                       <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
                     </div>
+                    {c.descricao && (
+                      <p className="text-xs text-muted-foreground">{c.descricao}</p>
+                    )}
                   </div>
                 ))}
               </div>

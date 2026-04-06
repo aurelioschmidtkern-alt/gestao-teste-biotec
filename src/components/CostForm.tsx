@@ -113,6 +113,10 @@ export function CostForm({ open, onOpenChange, onSubmit, initial, existingCatego
             <Label>Data *</Label>
             <Input type="date" value={data} onChange={e => setData(e.target.value)} required />
           </div>
+          <div>
+            <Label>Descrição</Label>
+            <Textarea placeholder="Descrição do custo (opcional)" value={descricao} onChange={e => setDescricao(e.target.value)} rows={3} />
+          </div>
           <Button type="submit" className="w-full">{initial ? "Salvar" : "Adicionar Custo"}</Button>
         </form>
       </DialogContent>

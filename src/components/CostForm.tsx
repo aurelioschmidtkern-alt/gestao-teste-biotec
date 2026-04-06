@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Custo } from "@/hooks/useCosts";
@@ -12,7 +13,7 @@ const NEW_CATEGORY_VALUE = "__nova__";
 interface CostFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => void;
+  onSubmit: (data: { tipo_custo: string; categoria: string; valor: number; data: string; descricao?: string }) => void;
   initial?: Custo | null;
   existingCategories?: string[];
 }
@@ -24,6 +25,7 @@ export function CostForm({ open, onOpenChange, onSubmit, initial, existingCatego
   const [newCategoryName, setNewCategoryName] = useState("");
   const [valor, setValor] = useState(initial ? String(initial.valor) : "");
   const [data, setData] = useState(initial?.data ?? "");
+  const [descricao, setDescricao] = useState(initial?.descricao ?? "");
 
   const allCategories = Array.from(new Set([...DEFAULT_CATEGORIES, ...existingCategories]));
 
@@ -35,6 +37,7 @@ export function CostForm({ open, onOpenChange, onSubmit, initial, existingCatego
     setNewCategoryName("");
     setValor(initial ? String(initial.valor) : "");
     setData(initial?.data ?? "");
+    setDescricao(initial?.descricao ?? "");
   }, [initial]);
 
   const handleCategoryChange = (value: string) => {
@@ -53,8 +56,8 @@ export function CostForm({ open, onOpenChange, onSubmit, initial, existingCatego
     e.preventDefault();
     const v = parseFloat(valor);
     if (!v || v <= 0 || !data || !finalCategory) return;
-    onSubmit({ tipo_custo: tipoCusto, categoria: finalCategory, valor: v, data });
-    if (!initial) { setValor(""); setData(""); setIsNewCategory(false); setNewCategoryName(""); }
+    onSubmit({ tipo_custo: tipoCusto, categoria: finalCategory, valor: v, data, descricao: descricao.trim() || undefined });
+    if (!initial) { setValor(""); setData(""); setDescricao(""); setIsNewCategory(false); setNewCategoryName(""); }
     onOpenChange(false);
   };
 
@@ -109,6 +112,10 @@ export function CostForm({ open, onOpenChange, onSubmit, initial, existingCatego
           <div>
             <Label>Data *</Label>
             <Input type="date" value={data} onChange={e => setData(e.target.value)} required />
+          </div>
+          <div>
+            <Label>Descrição</Label>
+            <Textarea placeholder="Descrição do custo (opcional)" value={descricao} onChange={e => setDescricao(e.target.value)} rows={3} />
           </div>
           <Button type="submit" className="w-full">{initial ? "Salvar" : "Adicionar Custo"}</Button>
         </form>

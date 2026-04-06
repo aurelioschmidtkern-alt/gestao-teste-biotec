@@ -19,6 +19,7 @@ export type Database = {
           categoria: string
           created_at: string
           data: string
+          descricao: string | null
           id: string
           projeto_id: string
           tipo_custo: string
@@ -28,6 +29,7 @@ export type Database = {
           categoria: string
           created_at?: string
           data: string
+          descricao?: string | null
           id?: string
           projeto_id: string
           tipo_custo: string
@@ -37,6 +39,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           data?: string
+          descricao?: string | null
           id?: string
           projeto_id?: string
           tipo_custo?: string

@@ -19,13 +19,13 @@ export function CostsList({ projetoId }: { projetoId: string }) {
   const total = costs.reduce((sum, c) => sum + Number(c.valor), 0);
   const existingCategories = Array.from(new Set(costs.map(c => c.categoria)));
 
-  const handleCreate = (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => {
-    createCost.mutate({ ...data, projeto_id: projetoId }, {
+  const handleCreate = (data: { tipo_custo: string; categoria: string; valor: number; data: string; descricao?: string }) => {
+    createCost.mutate({ ...data, projeto_id: projetoId, descricao: data.descricao ?? null }, {
       onSuccess: () => toast.success("Custo adicionado!"),
     });
   };
 
-  const handleEdit = (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => {
+  const handleEdit = (data: { tipo_custo: string; categoria: string; valor: number; data: string; descricao?: string }) => {
     if (!editingCost) return;
     updateCost.mutate({ id: editingCost.id, projeto_id: projetoId, ...data }, {
       onSuccess: () => { toast.success("Custo atualizado!"); setEditingCost(null); },
@@ -83,26 +83,28 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                   <span></span>
                 </div>
                 {costs.map(c => (
-                  <div
-                    key={c.id}
-                    className="grid grid-cols-[100px_1fr_120px_100px_80px] gap-4 py-3.5 items-center hover:bg-muted/30 transition-colors rounded-lg -mx-2 px-2"
-                  >
-                    <span>
-                      <Badge className={`rounded-full text-xs ${c.tipo_custo === "Fixo" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-                        {c.tipo_custo}
-                      </Badge>
-                    </span>
-                    <span className="text-sm">{c.categoria}</span>
-                    <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
-                    <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
-                    <div className="flex gap-0.5">
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                  <div key={c.id} className="py-3.5 hover:bg-muted/30 transition-colors rounded-lg -mx-2 px-2">
+                    <div className="grid grid-cols-[100px_1fr_120px_100px_80px] gap-4 items-center">
+                      <span>
+                        <Badge className={`rounded-full text-xs ${c.tipo_custo === "Fixo" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                          {c.tipo_custo}
+                        </Badge>
+                      </span>
+                      <span className="text-sm">{c.categoria}</span>
+                      <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
+                      <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
+                      <div className="flex gap-0.5">
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => setEditingCost(c)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => deleteCost.mutate({ id: c.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Custo excluído") })}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
+                    {c.descricao && (
+                      <p className="text-xs text-muted-foreground mt-1.5 ml-[116px]">{c.descricao}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -130,6 +132,9 @@ export function CostsList({ projetoId }: { projetoId: string }) {
                       <span className="text-sm font-semibold">{formatCurrency(Number(c.valor))}</span>
                       <span className="text-xs text-muted-foreground">{formatDateBR(c.data)}</span>
                     </div>
+                    {c.descricao && (
+                      <p className="text-xs text-muted-foreground">{c.descricao}</p>
+                    )}
                   </div>
                 ))}
               </div>

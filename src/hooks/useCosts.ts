@@ -35,8 +35,8 @@ export function useCreateCost() {
 export function useUpdateCost() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, projeto_id, ...updates }: { id: string; projeto_id: string; tipo_custo: string; categoria: string; valor: number; data: string }) => {
-      const { data, error } = await supabase.from("custos").update({ tipo_custo: updates.tipo_custo, categoria: updates.categoria, valor: updates.valor, data: updates.data }).eq("id", id).select().single();
+    mutationFn: async ({ id, projeto_id, ...updates }: { id: string; projeto_id: string; tipo_custo: string; categoria: string; valor: number; data: string; descricao?: string }) => {
+      const { data, error } = await supabase.from("custos").update({ tipo_custo: updates.tipo_custo, categoria: updates.categoria, valor: updates.valor, data: updates.data, descricao: updates.descricao ?? null }).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },

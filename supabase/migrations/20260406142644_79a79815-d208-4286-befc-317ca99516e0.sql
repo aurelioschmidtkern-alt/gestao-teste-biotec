@@ -1,0 +1,1 @@
+ALTER TABLE public.custos ADD COLUMN descricao text;

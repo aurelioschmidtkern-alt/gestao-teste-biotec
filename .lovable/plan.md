@@ -1,29 +1,25 @@
 
 
-## Risco (line-through) nas Tarefas Concluídas no Kanban
+## Permitir Coordenador Ver Todos os Usuários para Atribuir Responsáveis
 
-### Alteração
+### Problema
+A política de segurança (RLS) na tabela `profiles` só permite que o próprio usuário ou Administradores vejam os perfis. Coordenadores não conseguem listar todos os usuários, então o dropdown de responsáveis aparece vazio ao criar tarefas.
 
-**Arquivo: `src/components/KanbanBoard.tsx` — linha 146**
+### Solução
 
-Adicionar `line-through` condicional no título da tarefa quando o status é "Concluído":
+**1. Migration — criar função `is_coordinator` e atualizar RLS**
 
-```typescript
-// De:
-<CardTitle className="text-sm flex-1 font-medium">{task.nome}</CardTitle>
+- Criar função `is_coordinator(_user_id uuid)` similar à `is_admin` existente
+- Alterar a política "Users can view profiles" para incluir Coordenadores:
+  ```sql
+  (auth.uid() = user_id) OR is_admin(auth.uid()) OR is_coordinator(auth.uid())
+  ```
 
-// Para:
-<CardTitle className={`text-sm flex-1 font-medium ${task.status === "Concluído" ? "line-through text-muted-foreground" : ""}`}>{task.nome}</CardTitle>
-```
+**2. Nenhuma alteração de código frontend necessária**
+O `TaskForm` já usa `useActiveUsers()` que lista todos os perfis ativos. Ao liberar a leitura via RLS, o dropdown funcionará automaticamente para Coordenadores.
 
-Também aplicar opacidade reduzida no card inteiro para reforçar visualmente:
-
-```typescript
-// Linha 139 — adicionar ao className do Card:
-${task.status === "Concluído" ? "opacity-60" : ""}
-```
-
-### Resultado
-- Ao arrastar para "Concluído", o nome da tarefa ganha um risco e o card fica levemente esmaecido
-- Ao mover de volta para outra coluna, o estilo volta ao normal
+### O que NÃO muda
+- Permissões de edição/exclusão de perfis
+- Lógica do formulário de tarefas
+- Qualquer outro componente
 

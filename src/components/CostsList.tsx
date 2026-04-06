@@ -19,13 +19,13 @@ export function CostsList({ projetoId }: { projetoId: string }) {
   const total = costs.reduce((sum, c) => sum + Number(c.valor), 0);
   const existingCategories = Array.from(new Set(costs.map(c => c.categoria)));
 
-  const handleCreate = (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => {
-    createCost.mutate({ ...data, projeto_id: projetoId }, {
+  const handleCreate = (data: { tipo_custo: string; categoria: string; valor: number; data: string; descricao?: string }) => {
+    createCost.mutate({ ...data, projeto_id: projetoId, descricao: data.descricao ?? null }, {
       onSuccess: () => toast.success("Custo adicionado!"),
     });
   };
 
-  const handleEdit = (data: { tipo_custo: string; categoria: string; valor: number; data: string }) => {
+  const handleEdit = (data: { tipo_custo: string; categoria: string; valor: number; data: string; descricao?: string }) => {
     if (!editingCost) return;
     updateCost.mutate({ id: editingCost.id, projeto_id: projetoId, ...data }, {
       onSuccess: () => { toast.success("Custo atualizado!"); setEditingCost(null); },

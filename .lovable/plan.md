@@ -1,50 +1,36 @@
 
 
-## Substituir `confirm()` por AlertDialog
-
-### Problema
-Os diálogos de confirmação de exclusão usam `window.confirm()` nativo do navegador, que exibe URL interna e visual fora do padrão do projeto.
-
-### Solução
-Substituir por `AlertDialog` (já usado na página Trash.tsx como referência).
+## Exibir Apenas Primeiro Nome nos Responsáveis das Tarefas
 
 ### Alterações
 
-**1. `src/components/KanbanBoard.tsx` — linha 151**
-- Substituir o `Button` com `confirm()` por `AlertDialog` + `AlertDialogTrigger` wrapping o botão de lixeira
-- Ao confirmar, chamar `deleteTask.mutate()`
-
-**2. `src/pages/Index.tsx` — linhas 118-131**
-- Substituir o `Button` com `confirm()` por `AlertDialog` + `AlertDialogTrigger` wrapping o botão de lixeira
-- Ao confirmar, chamar `deleteProject.mutate()`
-
-### Padrão (mesmo usado em `Trash.tsx`)
-```tsx
-<AlertDialog>
-  <AlertDialogTrigger asChild>
-    <Button size="icon" variant="ghost" ...>
-      <Trash2 />
-    </Button>
-  </AlertDialogTrigger>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>Mover para a lixeira?</AlertDialogTitle>
-      <AlertDialogDescription>
-        O item será movido para a lixeira. Você poderá restaurá-lo depois.
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-      <AlertDialogAction onClick={() => mutate(...)}>
-        Mover para lixeira
-      </AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
+**1. `src/lib/utils.ts` — adicionar função utilitária**
+```typescript
+export function getFirstName(fullName: string | null): string {
+  if (!fullName) return "";
+  return fullName.trim().split(" ")[0];
+}
 ```
 
+**2. `src/components/KanbanBoard.tsx`**
+- Importar `getFirstName` de `@/lib/utils`
+- Na linha do avatar (inicial do nome): já usa `charAt(0)` — sem mudança necessária
+- Na exibição do nome do responsável (~linha 178, `formatResponsaveis`): aplicar `getFirstName` a cada nome
+- Atualizar `formatResponsaveis` para mapear cada nome com `getFirstName`:
+```typescript
+const formatResponsaveis = (responsavel: string | string[] | null) => {
+  if (!responsavel) return null;
+  const names = Array.isArray(responsavel) ? responsavel : [responsavel];
+  return names.map(getFirstName).join(", ");
+};
+```
+
+**3. `src/pages/MyWork.tsx`**
+- Importar `getFirstName`
+- Nos badges de responsáveis (~linha 210), aplicar `getFirstName(r)` no texto do Badge
+
 ### O que NÃO muda
-- Lógica de soft delete
-- Visual dos cards
-- Permissões
+- Nome completo armazenado no banco
+- Tela de usuários, perfil, formulários de cadastro/edição
+- Dropdown de seleção de responsáveis no TaskForm
 

@@ -9,13 +9,13 @@ export type Permissions = {
   canManageUsers: boolean;
   canAccessCosts: boolean;
   canViewAllProjects: boolean;
+  canAccessTrash: boolean;
 };
 
 export function usePermissions(): Permissions {
   const { profile, isLoading } = useProfile();
   const perfil = profile?.perfil || "Funcionario";
 
-  // While loading, grant no permissions but signal loading state
   if (isLoading || !profile) {
     return {
       perfil: "",
@@ -26,6 +26,7 @@ export function usePermissions(): Permissions {
       canManageUsers: false,
       canAccessCosts: false,
       canViewAllProjects: false,
+      canAccessTrash: false,
     };
   }
 
@@ -39,6 +40,7 @@ export function usePermissions(): Permissions {
       canManageUsers: true,
       canAccessCosts: true,
       canViewAllProjects: true,
+      canAccessTrash: true,
     };
   }
 
@@ -52,10 +54,10 @@ export function usePermissions(): Permissions {
       canManageUsers: false,
       canAccessCosts: true,
       canViewAllProjects: true,
+      canAccessTrash: true,
     };
   }
 
-  // Funcionario
   return {
     perfil,
     isLoading: false,
@@ -65,5 +67,6 @@ export function usePermissions(): Permissions {
     canManageUsers: false,
     canAccessCosts: false,
     canViewAllProjects: false,
+    canAccessTrash: false,
   };
 }

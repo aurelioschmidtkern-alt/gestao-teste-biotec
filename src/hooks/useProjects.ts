@@ -11,7 +11,23 @@ export function useProjects() {
       const { data, error } = await supabase
         .from("projetos")
         .select("*")
+        .eq("deleted", false)
         .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useDeletedProjects() {
+  return useQuery({
+    queryKey: ["projetos-deleted"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projetos")
+        .select("*")
+        .eq("deleted", true)
+        .order("deleted_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -46,9 +62,43 @@ export function useDeleteProject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("projetos")
+        .update({ deleted: true, deleted_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
+    },
+  });
+}
+
+export function useRestoreProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("projetos")
+        .update({ deleted: false, deleted_at: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
+    },
+  });
+}
+
+export function usePermanentlyDeleteProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase.from("projetos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projetos"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["projetos-deleted"] }),
   });
 }

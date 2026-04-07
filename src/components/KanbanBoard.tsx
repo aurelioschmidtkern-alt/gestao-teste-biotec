@@ -148,7 +148,7 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                       <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}>
                                         <Pencil className="h-3 w-3" />
                                       </Button>
-                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); deleteTask.mutate({ id: task.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Tarefa excluída") }); }}>
+                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); if (confirm("Mover tarefa para a lixeira?")) { deleteTask.mutate({ id: task.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Tarefa movida para a lixeira") }); } }}>
                                         <Trash2 className="h-3 w-3" />
                                       </Button>
                                     </div>

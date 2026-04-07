@@ -28,8 +28,8 @@ export function useDashboard(projectId?: string | null) {
     queryKey: ["dashboard", profile?.nome, profile?.perfil, projectId],
     queryFn: async () => {
       const [projectsRes, tasksRes, costsRes] = await Promise.all([
-        supabase.from("projetos").select("*").order("created_at", { ascending: false }),
-        supabase.from("tarefas").select("*").order("created_at", { ascending: true }),
+        supabase.from("projetos").select("*").eq("deleted", false).order("created_at", { ascending: false }),
+        supabase.from("tarefas").select("*").eq("deleted", false).order("created_at", { ascending: true }),
         supabase.from("custos").select("*"),
       ]);
 

@@ -8,7 +8,8 @@ async function checkAndUpdateProjectStatus(projetoId: string) {
   const { data: tasks } = await supabase
     .from("tarefas")
     .select("status")
-    .eq("projeto_id", projetoId);
+    .eq("projeto_id", projetoId)
+    .eq("deleted", false);
 
   if (!tasks || tasks.length === 0) return;
 
@@ -34,11 +35,27 @@ export function useTasks(projetoId: string) {
         .from("tarefas")
         .select("*")
         .eq("projeto_id", projetoId)
+        .eq("deleted", false)
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
     enabled: !!projetoId,
+  });
+}
+
+export function useDeletedTasks() {
+  return useQuery({
+    queryKey: ["tarefas-deleted"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tarefas")
+        .select("*, projetos(nome)")
+        .eq("deleted", true)
+        .order("deleted_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
   });
 }
 
@@ -75,14 +92,52 @@ export function useDeleteTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, projeto_id }: { id: string; projeto_id: string }) => {
-      const { error } = await supabase.from("tarefas").delete().eq("id", id);
+      const { error } = await supabase
+        .from("tarefas")
+        .update({ deleted: true, deleted_at: new Date().toISOString() })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: async (_, vars) => {
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["my-tasks"] });
+      qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
       await checkAndUpdateProjectStatus(vars.projeto_id);
       qc.invalidateQueries({ queryKey: ["projetos"] });
+    },
+  });
+}
+
+export function useRestoreTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, projeto_id }: { id: string; projeto_id: string }) => {
+      const { error } = await supabase
+        .from("tarefas")
+        .update({ deleted: false, deleted_at: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: async (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["my-tasks"] });
+      qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
+      await checkAndUpdateProjectStatus(vars.projeto_id);
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+    },
+  });
+}
+
+export function usePermanentlyDeleteTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, projeto_id }: { id: string; projeto_id: string }) => {
+      const { error } = await supabase.from("tarefas").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
+      qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
     },
   });
 }

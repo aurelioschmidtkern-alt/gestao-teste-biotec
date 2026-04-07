@@ -1,65 +1,50 @@
 
 
-## Lixeira — Soft Delete e Recuperação de Projetos e Tarefas
+## Substituir `confirm()` por AlertDialog
 
-### Resumo
-Implementar exclusão temporária (soft delete) para projetos e tarefas, com uma tela de Lixeira para restaurar ou excluir permanentemente.
+### Problema
+Os diálogos de confirmação de exclusão usam `window.confirm()` nativo do navegador, que exibe URL interna e visual fora do padrão do projeto.
 
----
+### Solução
+Substituir por `AlertDialog` (já usado na página Trash.tsx como referência).
 
-### 1. Migration — adicionar campos de soft delete
+### Alterações
 
-```sql
-ALTER TABLE public.projetos
-  ADD COLUMN deleted boolean NOT NULL DEFAULT false,
-  ADD COLUMN deleted_at timestamptz;
+**1. `src/components/KanbanBoard.tsx` — linha 151**
+- Substituir o `Button` com `confirm()` por `AlertDialog` + `AlertDialogTrigger` wrapping o botão de lixeira
+- Ao confirmar, chamar `deleteTask.mutate()`
 
-ALTER TABLE public.tarefas
-  ADD COLUMN deleted boolean NOT NULL DEFAULT false,
-  ADD COLUMN deleted_at timestamptz;
+**2. `src/pages/Index.tsx` — linhas 118-131**
+- Substituir o `Button` com `confirm()` por `AlertDialog` + `AlertDialogTrigger` wrapping o botão de lixeira
+- Ao confirmar, chamar `deleteProject.mutate()`
+
+### Padrão (mesmo usado em `Trash.tsx`)
+```tsx
+<AlertDialog>
+  <AlertDialogTrigger asChild>
+    <Button size="icon" variant="ghost" ...>
+      <Trash2 />
+    </Button>
+  </AlertDialogTrigger>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Mover para a lixeira?</AlertDialogTitle>
+      <AlertDialogDescription>
+        O item será movido para a lixeira. Você poderá restaurá-lo depois.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+      <AlertDialogAction onClick={() => mutate(...)}>
+        Mover para lixeira
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
 ```
 
-### 2. Hooks — funções de soft delete, restore e permanent delete
-
-**`src/hooks/useProjects.ts`**
-- Alterar `useProjects()` para filtrar `deleted = false` (`.eq("deleted", false)`)
-- Adicionar `useDeletedProjects()` — busca projetos com `deleted = true`
-- Alterar `useDeleteProject()` para fazer soft delete (update `deleted=true, deleted_at=now()`)
-- Adicionar `useRestoreProject()`— update `deleted=false, deleted_at=null`
-- Adicionar `usePermanentlyDeleteProject()` — delete real
-
-**`src/hooks/useTasks.ts`**
-- Alterar `useTasks()` para filtrar `deleted = false`
-- Adicionar `useDeletedTasks()` — busca tarefas com `deleted = true`
-- Alterar `useDeleteTask()` para fazer soft delete
-- Adicionar `useRestoreTask()` e `usePermanentlyDeleteTask()`
-
-### 3. Página de Lixeira — `src/pages/Trash.tsx`
-
-Duas seções em abas:
-- **Projetos excluídos**: nome, data de exclusão, botões Restaurar e Excluir permanentemente
-- **Tarefas excluídas**: nome, projeto associado, data de exclusão, botões Restaurar e Excluir permanentemente
-
-Cada ação destrutiva (excluir permanentemente) terá `AlertDialog` de confirmação.
-
-### 4. Rota e Sidebar
-
-**`src/App.tsx`** — adicionar rota `/lixeira`
-
-**`src/components/AppSidebar.tsx`** — adicionar item "Lixeira" com ícone `Trash2`, visível para Administradores e Coordenadores
-
-### 5. Atualizar modais de exclusão existentes
-
-**`src/pages/Index.tsx`** e **`src/pages/ProjectDetail.tsx`** (tarefas):
-- Atualizar texto do modal de confirmação para informar que o item vai para a lixeira e poderá ser restaurado
-
-### 6. Permissões
-
-- Adicionar `canAccessTrash` ao `usePermissions` (Administrador e Coordenador)
-- Somente quem pode excluir pode restaurar/excluir permanentemente
-
 ### O que NÃO muda
-- RLS existente (já permite todas as operações nas tabelas projetos/tarefas)
-- Estrutura visual das outras páginas
-- Lógica do Kanban, Meu Trabalho, Dashboard (apenas filtram `deleted = false`)
+- Lógica de soft delete
+- Visual dos cards
+- Permissões
 

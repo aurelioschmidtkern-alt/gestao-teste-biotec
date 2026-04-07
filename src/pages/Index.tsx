@@ -116,19 +116,28 @@ export default function Index() {
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-base group-hover:text-primary transition-colors">{p.nome}</h3>
                     {canDeleteProject && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm("Deseja mover este projeto para a lixeira? Você poderá restaurá-lo depois.")) {
-                            deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto movido para a lixeira") });
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Mover para a lixeira?</AlertDialogTitle>
+                            <AlertDialogDescription>O projeto será movido para a lixeira. Você poderá restaurá-lo depois.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto movido para a lixeira") })}>Mover para lixeira</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                   <Badge className={`rounded-full text-xs ${STATUS_COLORS[p.status] || ""}`}>{p.status}</Badge>

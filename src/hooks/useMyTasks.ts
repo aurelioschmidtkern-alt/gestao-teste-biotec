@@ -37,6 +37,7 @@ export function useMyTasks() {
       const { data, error } = await supabase
         .from("tarefas")
         .select("*, projetos(nome)")
+        .eq("deleted", false)
         .order("data_fim", { ascending: true, nullsFirst: false });
 
       if (error) throw error;

@@ -46,6 +46,7 @@ export default function Index() {
       const { data } = await supabase
         .from("tarefas")
         .select("projeto_id")
+        .eq("deleted", false)
         .contains("responsavel", [userName]);
       return new Set((data || []).map((t) => t.projeto_id));
     },
@@ -121,7 +122,9 @@ export default function Index() {
                         className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto excluído") });
+                          if (confirm("Deseja mover este projeto para a lixeira? Você poderá restaurá-lo depois.")) {
+                            deleteProject.mutate(p.id, { onSuccess: () => toast.success("Projeto movido para a lixeira") });
+                          }
                         }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

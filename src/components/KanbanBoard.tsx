@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -148,9 +149,23 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
                                       <Button size="icon" variant="ghost" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); setEditingTask(task); }}>
                                         <Pencil className="h-3 w-3" />
                                       </Button>
-                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); if (confirm("Mover tarefa para a lixeira?")) { deleteTask.mutate({ id: task.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Tarefa movida para a lixeira") }); } }}>
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={(e) => e.stopPropagation()}>
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Mover para a lixeira?</AlertDialogTitle>
+                                            <AlertDialogDescription>A tarefa será movida para a lixeira. Você poderá restaurá-la depois.</AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => deleteTask.mutate({ id: task.id, projeto_id: projetoId }, { onSuccess: () => toast.success("Tarefa movida para a lixeira") })}>Mover para lixeira</AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
                                     </div>
                                   </div>
                                 </CardHeader>

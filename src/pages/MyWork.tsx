@@ -12,7 +12,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { TaskForm } from "@/components/TaskForm";
 import { toast } from "sonner";
 import { getTaskUrgency } from "@/lib/taskUrgency";
-import { formatDateBR } from "@/lib/utils";
+import { formatDateBR, getFirstName } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   isToday,

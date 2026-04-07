@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardList, FolderOpen, Users, LayoutDashboard } from "lucide-react";
+import { BarChart3, ClipboardList, FolderOpen, Users, LayoutDashboard, Trash2 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { usePermissions } from "@/hooks/usePermissions";
 import {
@@ -19,7 +19,7 @@ const activeNavItemClass = "bg-sidebar-accent text-sidebar-foreground font-mediu
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { canManageUsers } = usePermissions();
+  const { canManageUsers, canAccessTrash } = usePermissions();
 
   return (
     <Sidebar collapsible="icon">
@@ -81,6 +81,23 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {canAccessTrash && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/lixeira" end className={navItemClass} activeClassName={activeNavItemClass}>
+                      <Trash2 className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                      {!collapsed && <span className="text-sm">Lixeira</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {canManageUsers && (
           <SidebarGroup>

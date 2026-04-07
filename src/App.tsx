@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import MyWork from "./pages/MyWork";
 import Dashboard from "./pages/Dashboard";
+import Trash from "./pages/Trash";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/usuarios" element={<ProtectedRoute><AppLayout><Users /></AppLayout></ProtectedRoute>} />
           <Route path="/meu-trabalho" element={<ProtectedRoute><AppLayout><MyWork /></AppLayout></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+          <Route path="/lixeira" element={<ProtectedRoute><AppLayout><Trash /></AppLayout></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

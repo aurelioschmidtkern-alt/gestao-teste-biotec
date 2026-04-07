@@ -88,6 +88,8 @@ export type Database = {
       projetos: {
         Row: {
           created_at: string
+          deleted: boolean
+          deleted_at: string | null
           descricao: string | null
           id: string
           nome: string
@@ -96,6 +98,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted?: boolean
+          deleted_at?: string | null
           descricao?: string | null
           id?: string
           nome: string
@@ -104,6 +108,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted?: boolean
+          deleted_at?: string | null
           descricao?: string | null
           id?: string
           nome?: string
@@ -117,6 +123,8 @@ export type Database = {
           created_at: string
           data_fim: string | null
           data_inicio: string | null
+          deleted: boolean
+          deleted_at: string | null
           descricao: string | null
           id: string
           nome: string
@@ -129,6 +137,8 @@ export type Database = {
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
+          deleted?: boolean
+          deleted_at?: string | null
           descricao?: string | null
           id?: string
           nome: string
@@ -141,6 +151,8 @@ export type Database = {
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
+          deleted?: boolean
+          deleted_at?: string | null
           descricao?: string | null
           id?: string
           nome?: string

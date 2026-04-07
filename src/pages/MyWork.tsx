@@ -207,7 +207,7 @@ export default function MyWork() {
                               {task.responsavel && task.responsavel.length > 0 && (
                                 <div className="hidden md:flex gap-1 shrink-0">
                                   {task.responsavel.map((r) => (
-                                    <Badge key={r} variant="outline" className="text-xs rounded-full">{r}</Badge>
+                                    <Badge key={r} variant="outline" className="text-xs rounded-full">{getFirstName(r)}</Badge>
                                   ))}
                                 </div>
                               )}

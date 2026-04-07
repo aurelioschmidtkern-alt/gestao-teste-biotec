@@ -9,7 +9,7 @@ import { TaskForm } from "./TaskForm";
 import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, type Tarefa } from "@/hooks/useTasks";
 import { toast } from "sonner";
 import { getTaskUrgency } from "@/lib/taskUrgency";
-import { formatDateBR } from "@/lib/utils";
+import { formatDateBR, getFirstName } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
 const COLUMNS = ["A Fazer", "Em Andamento", "Concluído"] as const;
@@ -88,8 +88,8 @@ export function KanbanBoard({ projetoId }: { projetoId: string }) {
 
   const formatResponsaveis = (responsavel: string | string[] | null) => {
     if (!responsavel) return null;
-    if (Array.isArray(responsavel)) return responsavel.join(", ");
-    return responsavel;
+    const names = Array.isArray(responsavel) ? responsavel : [responsavel];
+    return names.map(getFirstName).join(", ");
   };
 
   if (isLoading) return <div className="text-muted-foreground">Carregando tarefas...</div>;

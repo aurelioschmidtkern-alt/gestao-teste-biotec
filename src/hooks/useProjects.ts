@@ -7,10 +7,12 @@ export type Projeto = Tables<"projetos">;
 export function useProjects() {
   return useQuery({
     queryKey: ["projetos"],
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projetos")
-        .select("id, nome, status, responsavel, created_at, descricao, deleted, deleted_at")
+        .select("id, nome, status, responsavel, created_at, descricao")
         .eq("deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -22,10 +24,12 @@ export function useProjects() {
 export function useDeletedProjects() {
   return useQuery({
     queryKey: ["projetos-deleted"],
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projetos")
-        .select("*")
+        .select("id, nome, status, responsavel, deleted_at")
         .eq("deleted", true)
         .order("deleted_at", { ascending: false });
       if (error) throw error;

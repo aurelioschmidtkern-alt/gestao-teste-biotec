@@ -17,7 +17,7 @@ export interface MyTask {
 
 export function useMyTasks() {
   const { user } = useAuth();
-  const { data: profile } = useProfile();
+  const { profile } = useProfile();
   const userName = profile?.nome;
 
   return useQuery({

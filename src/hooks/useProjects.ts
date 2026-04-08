@@ -10,7 +10,7 @@ export function useProjects() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projetos")
-        .select("*")
+        .select("id, nome, status, responsavel, created_at, descricao, deleted, deleted_at")
         .eq("deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;

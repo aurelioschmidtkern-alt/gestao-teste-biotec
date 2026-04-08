@@ -1,81 +1,71 @@
 
 
-## Otimização do `useMyTasks` — Diagnóstico e Plano
+## Otimização do `useProjects` — Diagnóstico e Plano
 
 ### Diagnóstico
 
-O hook já está **razoavelmente otimizado** graças à etapa anterior. Veja o estado atual:
-
-| Critério | Status | Detalhe |
+| Uso | Tela | Campos necessários |
 |---|---|---|
-| `SELECT *` | ✅ OK | Já seleciona colunas específicas |
-| Filtro por usuário | ✅ OK | `.contains("responsavel", [userName])` no banco |
-| Filtro `deleted` | ✅ OK | `.eq("deleted", false)` no banco |
-| Filtro `Concluído` | ✅ OK | `.neq("status", "Concluído")` no banco |
-| Ordenação | ✅ OK | `.order("data_fim")` — necessária para a UI |
-| Join | ✅ OK | Apenas `projetos(nome)` — mínimo necessário |
-| Cache (`staleTime`) | ⚠️ Usa global (60s) | Dados pessoais mudam com pouca frequência, poderia ser maior |
-| `refetchOnWindowFocus` | ⚠️ Ativo | Refaz a query toda vez que o usuário volta à aba |
-| Query extra de `profiles` | ⚠️ Redundante | Faz 1 query extra para buscar o nome do usuário. O hook `useProfile` já tem esse dado cacheado |
-| `data_inicio` e `created_at` | ⚠️ Desnecessários | `data_inicio` não é usado na UI do MyWork. `created_at` também não aparece na tela |
+| Listagem completa | **Index** | `id, nome, status, responsavel, created_at, descricao` |
+| Dropdown | **Dashboard** | `id, nome` |
+| Dropdown | **MyWork** | `id, nome` |
+| Type export | **ProjectForm** | `Projeto` type (não executa query) |
+| Mutation only | **ProjectDetail** | `useUpdateProject` (não executa query de leitura) |
 
-### Gargalos reais
+### Problemas identificados
 
-1. **Query extra no `profiles`** — toda vez que o hook executa, faz uma query separada ao `profiles` para obter o nome do usuário. Esse dado já está disponível no `useProfile()` cacheado. São **2 queries por acesso** ao Meu Trabalho quando poderia ser 1.
+1. **Colunas `deleted` e `deleted_at` no select** — sempre retornam `false` e `null` respectivamente (filtro `.eq("deleted", false)` garante isso). São 2 campos trafegados sem valor informativo.
 
-2. **Sem `staleTime` específico** — depende do global (60s). Tarefas do usuário não mudam tão rápido; 2 minutos seria adequado.
+2. **Sem `staleTime` específico** — usa global (60s). Como o hook é compartilhado entre 3 telas, o cache deveria ser mais durável para evitar refetch ao navegar.
 
-3. **`refetchOnWindowFocus` ativo** — ao alternar abas, refaz as 2 queries imediatamente.
+3. **Sem `refetchOnWindowFocus: false`** — toda troca de aba refaz a query.
 
-4. **Colunas `data_inicio` e `created_at`** — trafegadas mas não usadas na tela.
+4. **Ordenação `.order("created_at")` trafegada para dropdowns** — não prejudica (o banco já faz isso rápido com poucos registros), mas é desnecessária para Dashboard e MyWork.
+
+### Decisão: manter hook único
+
+Criar dois hooks separados (um leve para dropdowns, outro completo para Index) **não vale a pena** porque:
+- O volume de projetos é pequeno (dezenas, não milhares)
+- O cache compartilhado já evita queries duplicadas — Dashboard, MyWork e Index reusam o mesmo cache
+- Separar criaria dois caches independentes com invalidação duplicada
 
 ### Alterações
 
-**`src/hooks/useMyTasks.ts`**
+**`src/hooks/useProjects.ts` — linha 11-15**
 
-1. **Eliminar query ao `profiles`** — importar `useProfile` e usar o nome já cacheado como dependência:
-   ```typescript
-   import { useProfile } from "./useProfile";
-   
-   export function useMyTasks() {
-     const { user } = useAuth();
-     const { data: profile } = useProfile();
-     const userName = profile?.nome;
-   
-     return useQuery({
-       queryKey: ["my-tasks", user?.id, userName],
-       enabled: !!user?.id && !!userName,
-       staleTime: 2 * 60 * 1000,
-       refetchOnWindowFocus: false,
-       queryFn: async () => {
-         // Query direta sem buscar profile novamente
-         const { data, error } = await supabase
-           .from("tarefas")
-           .select("id, nome, descricao, status, data_fim, responsavel, prioridade, projeto_id, projetos(nome)")
-           ...
-       },
-     });
-   }
-   ```
+1. Remover `deleted, deleted_at` do select (sempre `false`/`null`)
+2. Adicionar `staleTime: 2 * 60 * 1000` e `refetchOnWindowFocus: false`
 
-2. **Remover `data_inicio` e `created_at`** do select — não são usados na UI
+```typescript
+// De:
+.select("id, nome, status, responsavel, created_at, descricao, deleted, deleted_at")
+.eq("deleted", false)
+.order("created_at", { ascending: false });
 
-3. **Adicionar `staleTime: 2 * 60 * 1000`** e **`refetchOnWindowFocus: false`**
+// Para:
+.select("id, nome, status, responsavel, created_at, descricao")
+.eq("deleted", false)
+.order("created_at", { ascending: false });
+```
 
-4. **Atualizar interface `MyTask`** — remover `data_inicio` e `created_at`
+Adicionar opções de cache:
+```typescript
+staleTime: 2 * 60 * 1000,
+refetchOnWindowFocus: false,
+```
 
-### Impacto esperado
+**`useDeletedProjects` — linha 27**
 
-| Melhoria | Efeito |
-|---|---|
-| Eliminar query `profiles` | **-1 query por acesso** (50% menos queries) |
-| `staleTime` 2min | Evita refetch ao navegar de volta à tela |
-| `refetchOnWindowFocus: false` | Evita refetch ao alternar abas |
-| Remover 2 colunas | Reduz payload marginalmente |
+Substituir `select("*")` por colunas específicas: `id, nome, status, responsavel, deleted_at`.
 
 ### O que NÃO muda
-- Agrupamentos por data na tela
-- Visual dos cards
-- Lógica de status/urgência
-- Outros hooks
+- Estrutura do banco
+- Formato de retorno (campos usados pela UI continuam presentes)
+- Mutations (`useCreateProject`, `useUpdateProject`, etc.)
+- Nenhuma tela precisa de ajuste
+
+### Impacto esperado
+- **Menos dados por request** (2 colunas removidas de cada projeto)
+- **Menos refetch** entre telas (staleTime 2min + cache compartilhado)
+- **Sem refetch ao trocar aba** (refetchOnWindowFocus: false)
 

@@ -1,78 +1,87 @@
 
 
-## Otimização de Consumo — Database Server
+## Validação do `useProjects()` e Otimização do `useDashboard`
 
-### 1. Diagnóstico
+### Estado atual do `useProjects()`
 
-| Tela/Componente | Problema | Impacto |
+| Critério | Status | Detalhe |
 |---|---|---|
-| **Dashboard** | Chama `useDashboard` **duas vezes** (linha 40: filtrado, linha 42: `allData` sem filtro). Cada chamada faz 3 queries (`SELECT *` em projetos, tarefas, custos). Total: **6 queries** ao abrir. | **Alto** |
-| **Dashboard** | Usa `SELECT *` em todas as tabelas — traz todas as colunas e todos os registros, filtra no cliente. | **Alto** |
-| **Index (Projetos)** | `useProjects()` faz `SELECT *` de todos projetos. Além disso, para Funcionários, dispara query extra em `tarefas` para buscar `projeto_id` vinculados. | **Médio** |
-| **MyWork** | `useMyTasks` faz `SELECT *` de **todas** as tarefas (com join em projetos), depois filtra no cliente por responsável. Também chama `useProjects()` separadamente. | **Alto** |
-| **ProjectDetail** | Faz query individual do projeto (`SELECT *`), razoável. Kanban faz `SELECT *` filtrado por `projeto_id` — ok. | **Baixo** |
-| **QueryClient** | Criado sem `defaultOptions` — não tem `staleTime` nem `gcTime`. Cada navegação entre rotas refaz **todas** as queries imediatamente. | **Muito Alto** |
-| **useProfile** | Chamado em muitos componentes (usePermissions, useDashboard, Index, MyWork, UserMenu). Sem `staleTime`, refaz a cada mount. | **Médio** |
-| **Invalidações em cascata** | `useUpdateTask` invalida `tarefas`, `my-tasks`, `projetos` (via `checkAndUpdateProjectStatus`). Cada mudança de status no Kanban gera 4+ queries. | **Médio** |
+| Não usa `SELECT *` | ✅ OK | Seleciona `id, nome, status, responsavel, created_at, descricao, deleted, deleted_at` |
+| Colunas mínimas para dropdown | ⚠️ Traz excesso | O dropdown só precisa de `id` e `nome`. As colunas `created_at`, `descricao`, `deleted`, `deleted_at` são desnecessárias para esse uso |
+| Filtro server-side | ✅ OK | Já filtra `.eq("deleted", false)` no banco |
+| Cache | ⚠️ Usa global (60s) | Adequado, mas o hook é usado em várias telas — OK |
+| Ordenação | ⚠️ | `.order("created_at", { ascending: false })` — necessário para a listagem de projetos, não para o dropdown |
 
-**Causa principal do 93% de Database**: Falta de `staleTime` no QueryClient + `SELECT *` sem filtros server-side + Dashboard fazendo 6 queries por load + MyWork buscando todas as tarefas do sistema.
+**Conclusão**: `useProjects()` está parcialmente otimizado. Funciona para o dropdown, mas traz colunas extras. Como ele é usado em outras telas (Index) que precisam de `descricao`, `responsavel`, etc., **não devemos reduzir suas colunas** — isso quebraria a tela de projetos.
 
----
+### Problema principal: Dashboard ainda chama `useDashboard` DUAS VEZES
 
-### 2. Plano de Otimização
+A Dashboard (linhas 40-41) continua fazendo:
+```typescript
+const { data: allData } = useDashboard(null);        // 3 queries
+const { data } = useDashboard(selectedProjectId);     // 3 queries (duplicadas quando null)
+```
 
-**A. `src/App.tsx` — Configurar `staleTime` global no QueryClient**
-- Adicionar `defaultOptions.queries.staleTime: 2 * 60 * 1000` (2 minutos)
-- Isso evita refetch ao navegar entre rotas quando os dados ainda são recentes
-- Impacto: **redução massiva** — é a mudança mais importante
+O `allData` só serve para popular o dropdown (linha 83: `allData?.projects`).
 
-**B. `src/hooks/useDashboard.ts` — Selecionar apenas colunas necessárias**
-- Projetos: `.select("id, nome, status, responsavel")` em vez de `*`
-- Tarefas: `.select("id, nome, status, data_fim, responsavel, projeto_id, prioridade")` em vez de `*`
-- Custos: `.select("categoria, valor")` em vez de `*`
-- Reduz payload transferido significativamente
+### Plano
 
-**C. `src/pages/Dashboard.tsx` — Eliminar a segunda chamada `useDashboard`**
-- Linha 42: `const { data: allData } = useDashboard(null)` é redundante — só serve para popular o dropdown de projetos
-- Substituir por reutilizar os projetos do `data` quando `selectedProjectId` é null, ou usar `useProjects()` que já é cacheado
-- Remove 3 queries desnecessárias
+**1. `src/pages/Dashboard.tsx` — Usar `useProjects()` para o dropdown**
 
-**D. `src/hooks/useMyTasks.ts` — Filtrar no servidor**
-- Atualmente traz todas as tarefas e filtra no cliente
-- Usar `.contains("responsavel", [userName])` diretamente na query do Supabase (campo é array)
-- Adicionar `.neq("status", "Concluído")` para não trazer concluídas (já são filtradas no cliente)
-- Selecionar apenas colunas usadas: `id, nome, descricao, status, data_inicio, data_fim, responsavel, prioridade, projeto_id, created_at, projetos(nome)`
+- Importar `useProjects` de `@/hooks/useProjects`
+- Substituir `useDashboard(null)` por `const { data: projectsList } = useProjects()`
+- Remover a chamada `useDashboard(null)` completamente
+- Usar `projectsList` no dropdown (linha 83)
+- Manter apenas uma chamada: `useDashboard(selectedProjectId)`
+- Ajustar a lógica de loading para depender apenas de `useDashboard`
 
-**E. `src/hooks/useProjects.ts` — Selecionar colunas necessárias**
-- `.select("id, nome, status, responsavel, created_at, descricao")` em vez de `*`
+```typescript
+// De (6 queries):
+const { data: allData, isLoading: allLoading } = useDashboard(null);
+const { data, isLoading } = useDashboard(selectedProjectId);
+const displayData = selectedProjectId ? data : allData;
 
-**F. `src/hooks/useProfile.ts` — Adicionar staleTime específico**
-- O perfil raramente muda: `staleTime: 5 * 60 * 1000` (5 minutos)
+// Para (3 queries + cache do useProjects):
+const { data: projectsList } = useProjects();
+const { data, isLoading } = useDashboard(selectedProjectId);
+```
 
-**G. `src/hooks/useActiveUsers.ts` — Adicionar staleTime**
-- Lista de usuários ativos raramente muda: `staleTime: 5 * 60 * 1000`
+Dropdown usa `projectsList` em vez de `allData?.projects`.
 
-**H. `src/hooks/useTasks.ts` — Otimizar `checkAndUpdateProjectStatus`**
-- Selecionar apenas `status`: `.select("status")` (já faz isso — ok)
-- Mas a função faz 2 queries extras em cada update de tarefa — considerar mover para trigger no banco no futuro. Por agora, manter mas garantir que as invalidações não cascateiam desnecessariamente.
+**2. `src/hooks/useDashboard.ts` — Aplicar filtros server-side e loop único**
 
----
+- Quando `projectId` existe, filtrar diretamente nas queries:
+  ```typescript
+  let projectsQuery = supabase.from("projetos").select("id, nome, status, responsavel").eq("deleted", false);
+  if (projectId) projectsQuery = projectsQuery.eq("id", projectId);
+  
+  let tasksQuery = supabase.from("tarefas").select("id, nome, status, data_fim, responsavel, projeto_id, prioridade").eq("deleted", false);
+  if (projectId) tasksQuery = tasksQuery.eq("projeto_id", projectId);
+  
+  let costsQuery = supabase.from("custos").select("categoria, valor, projeto_id");
+  if (projectId) costsQuery = costsQuery.eq("projeto_id", projectId);
+  ```
 
-### 3. Resultado Esperado
+- Remover `.order("created_at")` das queries (não usado pela UI da dashboard)
 
-| Melhoria | Redução estimada |
-|---|---|
-| `staleTime` global de 2min | ~50-60% das queries (elimina refetch ao navegar) |
-| Eliminar `useDashboard` duplicado | ~3 queries por acesso ao Dashboard |
-| Filtrar MyTasks no servidor | Reduz payload e processamento no banco |
-| Selecionar colunas específicas | Reduz I/O de rede e carga no banco |
-| `staleTime` em profile/users | Elimina queries repetidas de dados estáveis |
+- Substituir as múltiplas iterações `.filter()` por um **loop único** que calcula todas as métricas e `getTaskUrgency` uma só vez por tarefa
 
-**Impacto total estimado**: redução de 60-70% no consumo de Database Server.
+- Adicionar `staleTime: 2 * 60 * 1000` e `refetchOnWindowFocus: false` no hook
+
+**3. `useProjects()` — Manter como está**
+
+O hook já está adequado para o uso no dropdown. As colunas extras (`descricao`, `created_at`) são necessárias para a tela Index e o cache de 60s do global é suficiente. Reduzir colunas criaria a necessidade de dois hooks separados sem ganho real — o `useProjects` já é cacheado e compartilhado entre telas.
+
+### Impacto esperado
+
+- **-3 queries por acesso** ao Dashboard (elimina `useDashboard(null)`)
+- **Menos registros retornados** quando projeto selecionado (filtro server-side)
+- **~3x menos chamadas a `getTaskUrgency`** (loop único)
+- **Cache mais estável** para a dashboard (2min + sem refetch ao focar)
 
 ### O que NÃO muda
-- Estrutura das tabelas
-- RLS/permissões
-- Funcionalidade visual do sistema
-- Lógica de negócio
+- Formato de retorno do `DashboardData`
+- Visual da dashboard
+- Hook `useProjects()` (já adequado)
+- Estrutura do banco
 

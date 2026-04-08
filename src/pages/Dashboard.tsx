@@ -50,7 +50,7 @@ export default function Dashboard() {
     );
   }
 
-  const { metrics, tasksByStatus, tasksByDeadline, costsByCategory, criticalTasks, projects, tasks } = displayData;
+  const { metrics, tasksByStatus, tasksByDeadline, costsByCategory, criticalTasks, projects, tasks } = data;
 
   const metricCards = [
     { icon: FolderOpen, value: metrics.activeProjects, label: "Projetos ativos", color: "bg-primary/10 text-primary" },
@@ -78,7 +78,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os projetos</SelectItem>
-              {(allData?.projects || []).map((p) => (
+              {(projectsList || []).map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
               ))}
             </SelectContent>

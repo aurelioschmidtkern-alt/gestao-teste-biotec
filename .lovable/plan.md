@@ -1,87 +1,81 @@
 
 
-## Validação do `useProjects()` e Otimização do `useDashboard`
+## Otimização do `useMyTasks` — Diagnóstico e Plano
 
-### Estado atual do `useProjects()`
+### Diagnóstico
+
+O hook já está **razoavelmente otimizado** graças à etapa anterior. Veja o estado atual:
 
 | Critério | Status | Detalhe |
 |---|---|---|
-| Não usa `SELECT *` | ✅ OK | Seleciona `id, nome, status, responsavel, created_at, descricao, deleted, deleted_at` |
-| Colunas mínimas para dropdown | ⚠️ Traz excesso | O dropdown só precisa de `id` e `nome`. As colunas `created_at`, `descricao`, `deleted`, `deleted_at` são desnecessárias para esse uso |
-| Filtro server-side | ✅ OK | Já filtra `.eq("deleted", false)` no banco |
-| Cache | ⚠️ Usa global (60s) | Adequado, mas o hook é usado em várias telas — OK |
-| Ordenação | ⚠️ | `.order("created_at", { ascending: false })` — necessário para a listagem de projetos, não para o dropdown |
+| `SELECT *` | ✅ OK | Já seleciona colunas específicas |
+| Filtro por usuário | ✅ OK | `.contains("responsavel", [userName])` no banco |
+| Filtro `deleted` | ✅ OK | `.eq("deleted", false)` no banco |
+| Filtro `Concluído` | ✅ OK | `.neq("status", "Concluído")` no banco |
+| Ordenação | ✅ OK | `.order("data_fim")` — necessária para a UI |
+| Join | ✅ OK | Apenas `projetos(nome)` — mínimo necessário |
+| Cache (`staleTime`) | ⚠️ Usa global (60s) | Dados pessoais mudam com pouca frequência, poderia ser maior |
+| `refetchOnWindowFocus` | ⚠️ Ativo | Refaz a query toda vez que o usuário volta à aba |
+| Query extra de `profiles` | ⚠️ Redundante | Faz 1 query extra para buscar o nome do usuário. O hook `useProfile` já tem esse dado cacheado |
+| `data_inicio` e `created_at` | ⚠️ Desnecessários | `data_inicio` não é usado na UI do MyWork. `created_at` também não aparece na tela |
 
-**Conclusão**: `useProjects()` está parcialmente otimizado. Funciona para o dropdown, mas traz colunas extras. Como ele é usado em outras telas (Index) que precisam de `descricao`, `responsavel`, etc., **não devemos reduzir suas colunas** — isso quebraria a tela de projetos.
+### Gargalos reais
 
-### Problema principal: Dashboard ainda chama `useDashboard` DUAS VEZES
+1. **Query extra no `profiles`** — toda vez que o hook executa, faz uma query separada ao `profiles` para obter o nome do usuário. Esse dado já está disponível no `useProfile()` cacheado. São **2 queries por acesso** ao Meu Trabalho quando poderia ser 1.
 
-A Dashboard (linhas 40-41) continua fazendo:
-```typescript
-const { data: allData } = useDashboard(null);        // 3 queries
-const { data } = useDashboard(selectedProjectId);     // 3 queries (duplicadas quando null)
-```
+2. **Sem `staleTime` específico** — depende do global (60s). Tarefas do usuário não mudam tão rápido; 2 minutos seria adequado.
 
-O `allData` só serve para popular o dropdown (linha 83: `allData?.projects`).
+3. **`refetchOnWindowFocus` ativo** — ao alternar abas, refaz as 2 queries imediatamente.
 
-### Plano
+4. **Colunas `data_inicio` e `created_at`** — trafegadas mas não usadas na tela.
 
-**1. `src/pages/Dashboard.tsx` — Usar `useProjects()` para o dropdown**
+### Alterações
 
-- Importar `useProjects` de `@/hooks/useProjects`
-- Substituir `useDashboard(null)` por `const { data: projectsList } = useProjects()`
-- Remover a chamada `useDashboard(null)` completamente
-- Usar `projectsList` no dropdown (linha 83)
-- Manter apenas uma chamada: `useDashboard(selectedProjectId)`
-- Ajustar a lógica de loading para depender apenas de `useDashboard`
+**`src/hooks/useMyTasks.ts`**
 
-```typescript
-// De (6 queries):
-const { data: allData, isLoading: allLoading } = useDashboard(null);
-const { data, isLoading } = useDashboard(selectedProjectId);
-const displayData = selectedProjectId ? data : allData;
+1. **Eliminar query ao `profiles`** — importar `useProfile` e usar o nome já cacheado como dependência:
+   ```typescript
+   import { useProfile } from "./useProfile";
+   
+   export function useMyTasks() {
+     const { user } = useAuth();
+     const { data: profile } = useProfile();
+     const userName = profile?.nome;
+   
+     return useQuery({
+       queryKey: ["my-tasks", user?.id, userName],
+       enabled: !!user?.id && !!userName,
+       staleTime: 2 * 60 * 1000,
+       refetchOnWindowFocus: false,
+       queryFn: async () => {
+         // Query direta sem buscar profile novamente
+         const { data, error } = await supabase
+           .from("tarefas")
+           .select("id, nome, descricao, status, data_fim, responsavel, prioridade, projeto_id, projetos(nome)")
+           ...
+       },
+     });
+   }
+   ```
 
-// Para (3 queries + cache do useProjects):
-const { data: projectsList } = useProjects();
-const { data, isLoading } = useDashboard(selectedProjectId);
-```
+2. **Remover `data_inicio` e `created_at`** do select — não são usados na UI
 
-Dropdown usa `projectsList` em vez de `allData?.projects`.
+3. **Adicionar `staleTime: 2 * 60 * 1000`** e **`refetchOnWindowFocus: false`**
 
-**2. `src/hooks/useDashboard.ts` — Aplicar filtros server-side e loop único**
-
-- Quando `projectId` existe, filtrar diretamente nas queries:
-  ```typescript
-  let projectsQuery = supabase.from("projetos").select("id, nome, status, responsavel").eq("deleted", false);
-  if (projectId) projectsQuery = projectsQuery.eq("id", projectId);
-  
-  let tasksQuery = supabase.from("tarefas").select("id, nome, status, data_fim, responsavel, projeto_id, prioridade").eq("deleted", false);
-  if (projectId) tasksQuery = tasksQuery.eq("projeto_id", projectId);
-  
-  let costsQuery = supabase.from("custos").select("categoria, valor, projeto_id");
-  if (projectId) costsQuery = costsQuery.eq("projeto_id", projectId);
-  ```
-
-- Remover `.order("created_at")` das queries (não usado pela UI da dashboard)
-
-- Substituir as múltiplas iterações `.filter()` por um **loop único** que calcula todas as métricas e `getTaskUrgency` uma só vez por tarefa
-
-- Adicionar `staleTime: 2 * 60 * 1000` e `refetchOnWindowFocus: false` no hook
-
-**3. `useProjects()` — Manter como está**
-
-O hook já está adequado para o uso no dropdown. As colunas extras (`descricao`, `created_at`) são necessárias para a tela Index e o cache de 60s do global é suficiente. Reduzir colunas criaria a necessidade de dois hooks separados sem ganho real — o `useProjects` já é cacheado e compartilhado entre telas.
+4. **Atualizar interface `MyTask`** — remover `data_inicio` e `created_at`
 
 ### Impacto esperado
 
-- **-3 queries por acesso** ao Dashboard (elimina `useDashboard(null)`)
-- **Menos registros retornados** quando projeto selecionado (filtro server-side)
-- **~3x menos chamadas a `getTaskUrgency`** (loop único)
-- **Cache mais estável** para a dashboard (2min + sem refetch ao focar)
+| Melhoria | Efeito |
+|---|---|
+| Eliminar query `profiles` | **-1 query por acesso** (50% menos queries) |
+| `staleTime` 2min | Evita refetch ao navegar de volta à tela |
+| `refetchOnWindowFocus: false` | Evita refetch ao alternar abas |
+| Remover 2 colunas | Reduz payload marginalmente |
 
 ### O que NÃO muda
-- Formato de retorno do `DashboardData`
-- Visual da dashboard
-- Hook `useProjects()` (já adequado)
-- Estrutura do banco
+- Agrupamentos por data na tela
+- Visual dos cards
+- Lógica de status/urgência
+- Outros hooks
 

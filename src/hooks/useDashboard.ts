@@ -27,10 +27,26 @@ export function useDashboard(projectId?: string | null) {
   return useQuery({
     queryKey: ["dashboard", profile?.nome, profile?.perfil, projectId],
     queryFn: async () => {
+      const canViewAll = profile?.perfil === "Administrador" || profile?.perfil === "Coordenador";
+      const userName = profile?.nome || "";
+
+      // Build queries with server-side filters
+      let projectsQuery = supabase.from("projetos").select("id, nome, status, responsavel").eq("deleted", false);
+      let tasksQuery = supabase.from("tarefas").select("id, nome, status, data_fim, responsavel, projeto_id, prioridade").eq("deleted", false);
+      let costsQuery = supabase.from("custos").select("categoria, valor, projeto_id");
+
+      if (projectId) {
+        projectsQuery = projectsQuery.eq("id", projectId);
+        tasksQuery = tasksQuery.eq("projeto_id", projectId);
+        costsQuery = costsQuery.eq("projeto_id", projectId);
+      } else if (!canViewAll && userName) {
+        projectsQuery = projectsQuery.eq("responsavel", userName);
+      }
+
       const [projectsRes, tasksRes, costsRes] = await Promise.all([
-        supabase.from("projetos").select("id, nome, status, responsavel").eq("deleted", false).order("created_at", { ascending: false }),
-        supabase.from("tarefas").select("id, nome, status, data_fim, responsavel, projeto_id, prioridade").eq("deleted", false).order("created_at", { ascending: true }),
-        supabase.from("custos").select("categoria, valor, projeto_id"),
+        projectsQuery,
+        tasksQuery,
+        costsQuery,
       ]);
 
       if (projectsRes.error) throw projectsRes.error;
@@ -41,11 +57,8 @@ export function useDashboard(projectId?: string | null) {
       let tasks = tasksRes.data;
       let costs = costsRes.data;
 
-      const canViewAll = profile?.perfil === "Administrador" || profile?.perfil === "Coordenador";
-      const userName = profile?.nome || "";
-
-      if (!canViewAll && userName) {
-        projects = projects.filter(p => p.responsavel === userName);
+      // For non-privileged users without projectId, filter tasks by user's projects + assigned
+      if (!projectId && !canViewAll && userName) {
         const projectIds = new Set(projects.map(p => p.id));
         tasks = tasks.filter(t =>
           projectIds.has(t.projeto_id) || (t.responsavel && t.responsavel.includes(userName))
@@ -53,63 +66,53 @@ export function useDashboard(projectId?: string | null) {
         costs = costs.filter(c => projectIds.has(c.projeto_id));
       }
 
-      // Filter by specific project if selected
-      if (projectId) {
-        projects = projects.filter(p => p.id === projectId);
-        tasks = tasks.filter(t => t.projeto_id === projectId);
-        costs = costs.filter(c => c.projeto_id === projectId);
+      // Single-pass metrics calculation
+      let activeProjects = 0;
+      for (const p of projects) {
+        if (p.status === "Ativo") activeProjects++;
       }
 
-      // Metrics
-      const activeProjects = projects.filter(p => p.status === "Ativo").length;
-      const tasksInProgress = tasks.filter(t => t.status === "Em Andamento").length;
-      const tasksCompleted = tasks.filter(t => t.status === "Concluído").length;
-      const tasksOverdue = tasks.filter(t => {
-        const urgency = getTaskUrgency(t.data_fim, t.status);
-        return urgency.label?.startsWith("Atrasada");
-      }).length;
+      let aFazer = 0, emAndamento = 0, concluido = 0;
+      let onTime = 0, attention = 0, overdue = 0, tasksOverdue = 0;
+      const projectMap = new Map(projects.map(p => [p.id, p.nome]));
+      const criticalCandidates: (typeof tasks[number] & { projectName: string })[] = [];
+
+      for (const t of tasks) {
+        if (t.status === "Concluído") { concluido++; continue; }
+        if (t.status === "A Fazer") aFazer++;
+        else if (t.status === "Em Andamento") emAndamento++;
+
+        const u = getTaskUrgency(t.data_fim, t.status);
+        if (u.label?.startsWith("Atrasada")) { overdue++; tasksOverdue++; }
+        else if (!u.label || u.label === "Prazo ok") onTime++;
+        else attention++;
+
+        if (u.label?.startsWith("Atrasada") || u.label === "Vence hoje" || u.label === "Vence amanhã") {
+          criticalCandidates.push({ ...t, projectName: projectMap.get(t.projeto_id) || "" });
+        }
+      }
+
       const totalCosts = costs.reduce((sum, c) => sum + Number(c.valor), 0);
 
-      // Tasks by status
-      const aFazer = tasks.filter(t => t.status === "A Fazer").length;
-      const emAndamento = tasksInProgress;
-      const concluido = tasksCompleted;
       const tasksByStatus = [
         { name: "A Fazer", value: aFazer, fill: "hsl(220, 14%, 60%)" },
         { name: "Em Andamento", value: emAndamento, fill: "hsl(217, 91%, 60%)" },
         { name: "Concluído", value: concluido, fill: "hsl(142, 71%, 45%)" },
       ];
 
-      // Tasks by deadline
-      let onTime = 0, attention = 0, overdue = 0;
-      tasks.filter(t => t.status !== "Concluído").forEach(t => {
-        const u = getTaskUrgency(t.data_fim, t.status);
-        if (!u.label || u.label === "Prazo ok") onTime++;
-        else if (u.label.startsWith("Atrasada")) overdue++;
-        else attention++;
-      });
       const tasksByDeadline = [
         { name: "No prazo", value: onTime, fill: "hsl(142, 71%, 45%)" },
         { name: "Atenção", value: attention, fill: "hsl(38, 92%, 50%)" },
         { name: "Atrasadas", value: overdue, fill: "hsl(0, 84%, 60%)" },
       ];
 
-      // Costs by category
       const costMap = new Map<string, number>();
-      costs.forEach(c => {
+      for (const c of costs) {
         costMap.set(c.categoria, (costMap.get(c.categoria) || 0) + Number(c.valor));
-      });
+      }
       const costsByCategory = Array.from(costMap.entries()).map(([name, value]) => ({ name, value }));
 
-      // Critical tasks (overdue + due today/tomorrow, max 10)
-      const projectMap = new Map(projects.map(p => [p.id, p.nome]));
-      const criticalTasks = tasks
-        .filter(t => {
-          if (t.status === "Concluído") return false;
-          const u = getTaskUrgency(t.data_fim, t.status);
-          return u.label?.startsWith("Atrasada") || u.label === "Vence hoje" || u.label === "Vence amanhã";
-        })
-        .map(t => ({ ...t, projectName: projectMap.get(t.projeto_id) || "" }))
+      const criticalTasks = criticalCandidates
         .sort((a, b) => {
           if (!a.data_fim) return 1;
           if (!b.data_fim) return -1;
@@ -121,7 +124,7 @@ export function useDashboard(projectId?: string | null) {
         projects,
         tasks,
         costs,
-        metrics: { activeProjects, tasksInProgress, tasksCompleted, tasksOverdue, totalCosts },
+        metrics: { activeProjects, tasksInProgress: emAndamento, tasksCompleted: concluido, tasksOverdue, totalCosts },
         tasksByStatus,
         tasksByDeadline,
         costsByCategory,
@@ -129,5 +132,7 @@ export function useDashboard(projectId?: string | null) {
       } as DashboardData;
     },
     enabled: !!profile,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }

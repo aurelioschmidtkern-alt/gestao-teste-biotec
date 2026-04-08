@@ -33,36 +33,30 @@ export function useMyTasks() {
 
       const userName = profile.nome;
 
-      // Get all tasks with project name
+      // Get tasks where user is responsible, excluding completed
       const { data, error } = await supabase
         .from("tarefas")
-        .select("*, projetos(nome)")
+        .select("id, nome, descricao, status, data_inicio, data_fim, responsavel, prioridade, projeto_id, created_at, projetos(nome)")
         .eq("deleted", false)
+        .neq("status", "Concluído")
+        .contains("responsavel", [userName])
         .order("data_fim", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
 
-      // Filter tasks where user is a responsible
-      return (data || [])
-        .filter((t: any) => {
-          if (!t.responsavel) return false;
-          if (t.status === "Concluído") return false;
-          const resp = Array.isArray(t.responsavel) ? t.responsavel : [t.responsavel];
-          return resp.includes(userName);
-        })
-        .map((t: any) => ({
-          id: t.id,
-          nome: t.nome,
-          descricao: t.descricao,
-          status: t.status,
-          data_inicio: t.data_inicio,
-          data_fim: t.data_fim,
-          responsavel: t.responsavel,
-          prioridade: t.prioridade,
-          projeto_id: t.projeto_id,
-          projeto_nome: (t.projetos as any)?.nome ?? "Sem projeto",
-          created_at: t.created_at,
-        })) as MyTask[];
+      return (data || []).map((t: any) => ({
+        id: t.id,
+        nome: t.nome,
+        descricao: t.descricao,
+        status: t.status,
+        data_inicio: t.data_inicio,
+        data_fim: t.data_fim,
+        responsavel: t.responsavel,
+        prioridade: t.prioridade,
+        projeto_id: t.projeto_id,
+        projeto_nome: (t.projetos as any)?.nome ?? "Sem projeto",
+        created_at: t.created_at,
+      })) as MyTask[];
     },
     enabled: !!user?.id,
   });

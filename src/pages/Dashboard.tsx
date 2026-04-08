@@ -37,11 +37,14 @@ const stagger = {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const { data: allData, isLoading: allLoading } = useDashboard(null);
   const { data, isLoading } = useDashboard(selectedProjectId);
   const { canCreateProject } = usePermissions();
-  const { data: allData } = useDashboard(null);
 
-  if (isLoading || !data) {
+  // Use filtered data for display, but allData projects for dropdown
+  const displayData = selectedProjectId ? data : allData;
+
+  if ((selectedProjectId ? isLoading : allLoading) || !displayData) {
     return (
       <div className="max-w-7xl mx-auto p-8">
         <p className="text-center text-muted-foreground py-12">Carregando dashboard...</p>
@@ -49,7 +52,7 @@ export default function Dashboard() {
     );
   }
 
-  const { metrics, tasksByStatus, tasksByDeadline, costsByCategory, criticalTasks, projects, tasks } = data;
+  const { metrics, tasksByStatus, tasksByDeadline, costsByCategory, criticalTasks, projects, tasks } = displayData;
 
   const metricCards = [
     { icon: FolderOpen, value: metrics.activeProjects, label: "Projetos ativos", color: "bg-primary/10 text-primary" },

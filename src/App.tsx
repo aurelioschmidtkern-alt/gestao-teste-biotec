@@ -14,7 +14,13 @@ import MyWork from "./pages/MyWork";
 import Dashboard from "./pages/Dashboard";
 import Trash from "./pages/Trash";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -1,71 +1,74 @@
 
 
-## Otimização do `useProjects` — Diagnóstico e Plano
-
-### Diagnóstico
-
-| Uso | Tela | Campos necessários |
-|---|---|---|
-| Listagem completa | **Index** | `id, nome, status, responsavel, created_at, descricao` |
-| Dropdown | **Dashboard** | `id, nome` |
-| Dropdown | **MyWork** | `id, nome` |
-| Type export | **ProjectForm** | `Projeto` type (não executa query) |
-| Mutation only | **ProjectDetail** | `useUpdateProject` (não executa query de leitura) |
-
-### Problemas identificados
-
-1. **Colunas `deleted` e `deleted_at` no select** — sempre retornam `false` e `null` respectivamente (filtro `.eq("deleted", false)` garante isso). São 2 campos trafegados sem valor informativo.
-
-2. **Sem `staleTime` específico** — usa global (60s). Como o hook é compartilhado entre 3 telas, o cache deveria ser mais durável para evitar refetch ao navegar.
-
-3. **Sem `refetchOnWindowFocus: false`** — toda troca de aba refaz a query.
-
-4. **Ordenação `.order("created_at")` trafegada para dropdowns** — não prejudica (o banco já faz isso rápido com poucos registros), mas é desnecessária para Dashboard e MyWork.
-
-### Decisão: manter hook único
-
-Criar dois hooks separados (um leve para dropdowns, outro completo para Index) **não vale a pena** porque:
-- O volume de projetos é pequeno (dezenas, não milhares)
-- O cache compartilhado já evita queries duplicadas — Dashboard, MyWork e Index reusam o mesmo cache
-- Separar criaria dois caches independentes com invalidação duplicada
+## Otimização de Invalidação e Fluxo de Mutations
 
 ### Alterações
 
-**`src/hooks/useProjects.ts` — linha 11-15**
+**1. `src/hooks/useTasks.ts` — `checkAndUpdateProjectStatus` condicional**
 
-1. Remover `deleted, deleted_at` do select (sempre `false`/`null`)
-2. Adicionar `staleTime: 2 * 60 * 1000` e `refetchOnWindowFocus: false`
+Recebe `oldStatus` e `newStatus` opcionais. Só executa queries ao banco quando a mudança envolve "Concluído". Retorna `boolean`.
 
 ```typescript
-// De:
-.select("id, nome, status, responsavel, created_at, descricao, deleted, deleted_at")
-.eq("deleted", false)
-.order("created_at", { ascending: false });
+async function checkAndUpdateProjectStatus(
+  projetoId: string, 
+  oldStatus?: string, 
+  newStatus?: string
+): Promise<boolean> {
+  // Se ambos informados e nenhum é "Concluído", skip
+  if (oldStatus && newStatus && oldStatus !== "Concluído" && newStatus !== "Concluído") {
+    return false;
+  }
+  
+  const { data: tasks } = await supabase
+    .from("tarefas").select("status")
+    .eq("projeto_id", projetoId).eq("deleted", false);
 
-// Para:
-.select("id, nome, status, responsavel, created_at, descricao")
-.eq("deleted", false)
-.order("created_at", { ascending: false });
+  if (!tasks || tasks.length === 0) return false;
+
+  const allDone = tasks.every(t => t.status === "Concluído");
+  const newProjectStatus = allDone ? "Concluído" : "Ativo";
+
+  const { data: project } = await supabase
+    .from("projetos").select("status")
+    .eq("id", projetoId).single();
+
+  if (project && project.status !== newProjectStatus) {
+    await supabase.from("projetos").update({ status: newProjectStatus }).eq("id", projetoId);
+    return true;
+  }
+  return false;
+}
 ```
 
-Adicionar opções de cache:
-```typescript
-staleTime: 2 * 60 * 1000,
-refetchOnWindowFocus: false,
-```
+**2. `src/hooks/useTasks.ts` — Mutations com invalidação condicional + dashboard**
 
-**`useDeletedProjects` — linha 27**
+- `useUpdateTask`: passa `vars.status` como `newStatus`. Não temos `oldStatus` facilmente, mas quando `status` não está nos updates (edição de outros campos), skip o check. Invalidar `["projetos"]` só se `checkAndUpdate` retornar `true`. Sempre invalidar `["dashboard"]`.
+- `useCreateTask`: adicionar `invalidateQueries(["dashboard"])`
+- `useDeleteTask`: sempre rodar check (tarefa removida pode afetar status). Invalidar `["projetos"]` condicional. Adicionar `["dashboard"]`.
+- `useRestoreTask`: idem ao delete. Adicionar `["dashboard"]`.
+- `usePermanentlyDeleteTask`: adicionar `["dashboard"]`.
 
-Substituir `select("*")` por colunas específicas: `id, nome, status, responsavel, deleted_at`.
+**3. `src/hooks/useCosts.ts` — Invalidar dashboard + colunas específicas**
 
-### O que NÃO muda
-- Estrutura do banco
-- Formato de retorno (campos usados pela UI continuam presentes)
-- Mutations (`useCreateProject`, `useUpdateProject`, etc.)
-- Nenhuma tela precisa de ajuste
+- Substituir `select("*")` por `select("id, tipo_custo, categoria, valor, data, descricao, projeto_id, created_at")`
+- Adicionar `staleTime: 60 * 1000` no `useCosts`
+- Adicionar `qc.invalidateQueries({ queryKey: ["dashboard"] })` nas 3 mutations
+
+**4. `src/hooks/useProjects.ts` — Invalidar dashboard nas mutations**
+
+- Adicionar `qc.invalidateQueries({ queryKey: ["dashboard"] })` em: `useCreateProject`, `useUpdateProject`, `useDeleteProject`, `useRestoreProject`, `usePermanentlyDeleteProject`
 
 ### Impacto esperado
-- **Menos dados por request** (2 colunas removidas de cada projeto)
-- **Menos refetch** entre telas (staleTime 2min + cache compartilhado)
-- **Sem refetch ao trocar aba** (refetchOnWindowFocus: false)
+
+| Cenário | Antes | Depois |
+|---|---|---|
+| Mover "A Fazer" → "Em Andamento" | 6-7 queries | 3 queries |
+| Mover → "Concluído" | 6-7 queries | 5-6 queries |
+| Editar campos sem mudar status | 6-7 queries | 3 queries |
+| Dashboard após qualquer mutation | Desatualizada | Sincronizada |
+
+### O que NÃO muda
+- Visual do Kanban ou Dashboard
+- Lógica de negócio
+- Estrutura do banco
 

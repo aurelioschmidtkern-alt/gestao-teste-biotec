@@ -4,17 +4,25 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase
 
 export type Tarefa = Tables<"tarefas">;
 
-async function checkAndUpdateProjectStatus(projetoId: string) {
+async function checkAndUpdateProjectStatus(
+  projetoId: string,
+  oldStatus?: string,
+  newStatus?: string
+): Promise<boolean> {
+  if (oldStatus && newStatus && oldStatus !== "Concluído" && newStatus !== "Concluído") {
+    return false;
+  }
+
   const { data: tasks } = await supabase
     .from("tarefas")
     .select("status")
     .eq("projeto_id", projetoId)
     .eq("deleted", false);
 
-  if (!tasks || tasks.length === 0) return;
+  if (!tasks || tasks.length === 0) return false;
 
   const allDone = tasks.every(t => t.status === "Concluído");
-  const newStatus = allDone ? "Concluído" : "Ativo";
+  const newProjectStatus = allDone ? "Concluído" : "Ativo";
 
   const { data: project } = await supabase
     .from("projetos")
@@ -22,14 +30,17 @@ async function checkAndUpdateProjectStatus(projetoId: string) {
     .eq("id", projetoId)
     .single();
 
-  if (project && ((allDone && project.status !== "Concluído") || (!allDone && project.status === "Concluído"))) {
-    await supabase.from("projetos").update({ status: newStatus }).eq("id", projetoId);
+  if (project && project.status !== newProjectStatus) {
+    await supabase.from("projetos").update({ status: newProjectStatus }).eq("id", projetoId);
+    return true;
   }
+  return false;
 }
 
 export function useTasks(projetoId: string) {
   return useQuery({
     queryKey: ["tarefas", projetoId],
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tarefas")
@@ -47,6 +58,7 @@ export function useTasks(projetoId: string) {
 export function useDeletedTasks() {
   return useQuery({
     queryKey: ["tarefas-deleted"],
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tarefas")
@@ -67,7 +79,11 @@ export function useCreateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => { qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] }); qc.invalidateQueries({ queryKey: ["my-tasks"] }); },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["my-tasks"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 
@@ -82,8 +98,14 @@ export function useUpdateTask() {
     onSuccess: async (_, vars) => {
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["my-tasks"] });
-      await checkAndUpdateProjectStatus(vars.projeto_id);
-      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+
+      if (vars.status) {
+        const statusChanged = await checkAndUpdateProjectStatus(vars.projeto_id, undefined, vars.status);
+        if (statusChanged) {
+          qc.invalidateQueries({ queryKey: ["projetos"] });
+        }
+      }
     },
   });
 }
@@ -102,8 +124,12 @@ export function useDeleteTask() {
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["my-tasks"] });
       qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
-      await checkAndUpdateProjectStatus(vars.projeto_id);
-      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+
+      const statusChanged = await checkAndUpdateProjectStatus(vars.projeto_id);
+      if (statusChanged) {
+        qc.invalidateQueries({ queryKey: ["projetos"] });
+      }
     },
   });
 }
@@ -122,8 +148,12 @@ export function useRestoreTask() {
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["my-tasks"] });
       qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
-      await checkAndUpdateProjectStatus(vars.projeto_id);
-      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+
+      const statusChanged = await checkAndUpdateProjectStatus(vars.projeto_id);
+      if (statusChanged) {
+        qc.invalidateQueries({ queryKey: ["projetos"] });
+      }
     },
   });
 }
@@ -138,6 +168,7 @@ export function usePermanentlyDeleteTask() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }

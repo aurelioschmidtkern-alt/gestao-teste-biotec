@@ -46,7 +46,10 @@ export function useCreateProject() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projetos"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 
@@ -58,7 +61,10 @@ export function useUpdateProject() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projetos"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 
@@ -75,6 +81,7 @@ export function useDeleteProject() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projetos"] });
       qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
@@ -92,6 +99,7 @@ export function useRestoreProject() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projetos"] });
       qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
@@ -103,6 +111,9 @@ export function usePermanentlyDeleteProject() {
       const { error } = await supabase.from("projetos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["projetos-deleted"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }

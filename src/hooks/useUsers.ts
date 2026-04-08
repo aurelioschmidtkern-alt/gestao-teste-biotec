@@ -23,6 +23,7 @@ async function invokeManageUsers(action: string, body: Record<string, unknown> =
 export function useUsers() {
   return useQuery<UserProfile[]>({
     queryKey: ["users"],
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const res = await invokeManageUsers("list");
       return res.users;

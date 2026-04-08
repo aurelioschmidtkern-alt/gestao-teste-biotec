@@ -7,10 +7,11 @@ export type Custo = Tables<"custos">;
 export function useCosts(projetoId: string) {
   return useQuery({
     queryKey: ["custos", projetoId],
+    staleTime: 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custos")
-        .select("*")
+        .select("id, tipo_custo, categoria, valor, data, descricao, projeto_id, created_at")
         .eq("projeto_id", projetoId)
         .order("data", { ascending: false });
       if (error) throw error;
@@ -28,7 +29,10 @@ export function useCreateCost() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 
@@ -40,7 +44,10 @@ export function useUpdateCost() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 
@@ -51,7 +58,10 @@ export function useDeleteCost() {
       const { error } = await supabase.from("custos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 }
 

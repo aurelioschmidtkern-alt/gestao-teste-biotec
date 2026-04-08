@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderOpen, ListChecks, CheckCircle2, AlertTriangle, DollarSign, Plus } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useProjects } from "@/hooks/useProjects";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/hooks/useCosts";
 import { getTaskUrgency } from "@/lib/taskUrgency";
@@ -37,14 +38,11 @@ const stagger = {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const { data: allData, isLoading: allLoading } = useDashboard(null);
+  const { data: projectsList } = useProjects();
   const { data, isLoading } = useDashboard(selectedProjectId);
   const { canCreateProject } = usePermissions();
 
-  // Use filtered data for display, but allData projects for dropdown
-  const displayData = selectedProjectId ? data : allData;
-
-  if ((selectedProjectId ? isLoading : allLoading) || !displayData) {
+  if (isLoading || !data) {
     return (
       <div className="max-w-7xl mx-auto p-8">
         <p className="text-center text-muted-foreground py-12">Carregando dashboard...</p>

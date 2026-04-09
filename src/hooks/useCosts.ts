@@ -8,6 +8,8 @@ export function useCosts(projetoId: string) {
   return useQuery({
     queryKey: ["custos", projetoId],
     staleTime: 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custos")

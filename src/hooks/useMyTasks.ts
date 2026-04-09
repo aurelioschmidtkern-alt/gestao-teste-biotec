@@ -21,7 +21,7 @@ export function useMyTasks() {
   const userName = profile?.nome;
 
   return useQuery({
-    queryKey: ["my-tasks", user?.id, userName],
+    queryKey: ["my-tasks", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tarefas")
@@ -48,5 +48,6 @@ export function useMyTasks() {
     enabled: !!user?.id && !!userName,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }

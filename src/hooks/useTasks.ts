@@ -41,6 +41,8 @@ export function useTasks(projetoId: string) {
   return useQuery({
     queryKey: ["tarefas", projetoId],
     staleTime: 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tarefas")
@@ -59,6 +61,8 @@ export function useDeletedTasks() {
   return useQuery({
     queryKey: ["tarefas-deleted"],
     staleTime: 2 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tarefas")

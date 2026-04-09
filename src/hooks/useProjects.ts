@@ -9,6 +9,7 @@ export function useProjects() {
     queryKey: ["projetos"],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projetos")
@@ -26,6 +27,7 @@ export function useDeletedProjects() {
     queryKey: ["projetos-deleted"],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projetos")

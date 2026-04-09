@@ -24,6 +24,8 @@ export function useUsers() {
   return useQuery<UserProfile[]>({
     queryKey: ["users"],
     staleTime: 2 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const res = await invokeManageUsers("list");
       return res.users;

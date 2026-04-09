@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "./useProfile";
+import { useAuth } from "./useAuth";
 import { getTaskUrgency } from "@/lib/taskUrgency";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -22,10 +23,11 @@ export type DashboardData = {
 };
 
 export function useDashboard(projectId?: string | null) {
+  const { user } = useAuth();
   const { profile } = useProfile();
 
   return useQuery({
-    queryKey: ["dashboard", profile?.nome, profile?.perfil, projectId],
+    queryKey: ["dashboard", user?.id, profile?.perfil, projectId ?? "all"],
     queryFn: async () => {
       const canViewAll = profile?.perfil === "Administrador" || profile?.perfil === "Coordenador";
       const userName = profile?.nome || "";
@@ -134,5 +136,6 @@ export function useDashboard(projectId?: string | null) {
     enabled: !!profile,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }

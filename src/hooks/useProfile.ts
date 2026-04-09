@@ -18,6 +18,8 @@ export function useProfile() {
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   return { profile, isLoading };

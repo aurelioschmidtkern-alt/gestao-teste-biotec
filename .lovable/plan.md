@@ -1,74 +1,46 @@
 
 
-## Otimização de Invalidação e Fluxo de Mutations
+## Etapa 5 — Reaproveitamento de Cache entre Telas
+
+### QueryKey do `useDashboard`
+
+Conforme solicitado, a queryKey será:
+
+```typescript
+["dashboard", user?.id, profile?.perfil, projectId ?? "all"]
+```
+
+Isso garante cache por usuário e por perfil, sem usar `profile?.nome` (instável).
 
 ### Alterações
 
-**1. `src/hooks/useTasks.ts` — `checkAndUpdateProjectStatus` condicional**
+**1. `src/hooks/useDashboard.ts`**
+- Importar `useAuth` para obter `user?.id`
+- QueryKey: `["dashboard", user?.id, profile?.perfil, projectId ?? "all"]`
+- Adicionar `refetchOnMount: false`
 
-Recebe `oldStatus` e `newStatus` opcionais. Só executa queries ao banco quando a mudança envolve "Concluído". Retorna `boolean`.
+**2. `src/hooks/useMyTasks.ts`**
+- Simplificar queryKey de `["my-tasks", user?.id, userName]` para `["my-tasks", user?.id]`
+- Adicionar `refetchOnMount: false`
 
-```typescript
-async function checkAndUpdateProjectStatus(
-  projetoId: string, 
-  oldStatus?: string, 
-  newStatus?: string
-): Promise<boolean> {
-  // Se ambos informados e nenhum é "Concluído", skip
-  if (oldStatus && newStatus && oldStatus !== "Concluído" && newStatus !== "Concluído") {
-    return false;
-  }
-  
-  const { data: tasks } = await supabase
-    .from("tarefas").select("status")
-    .eq("projeto_id", projetoId).eq("deleted", false);
-
-  if (!tasks || tasks.length === 0) return false;
-
-  const allDone = tasks.every(t => t.status === "Concluído");
-  const newProjectStatus = allDone ? "Concluído" : "Ativo";
-
-  const { data: project } = await supabase
-    .from("projetos").select("status")
-    .eq("id", projetoId).single();
-
-  if (project && project.status !== newProjectStatus) {
-    await supabase.from("projetos").update({ status: newProjectStatus }).eq("id", projetoId);
-    return true;
-  }
-  return false;
-}
-```
-
-**2. `src/hooks/useTasks.ts` — Mutations com invalidação condicional + dashboard**
-
-- `useUpdateTask`: passa `vars.status` como `newStatus`. Não temos `oldStatus` facilmente, mas quando `status` não está nos updates (edição de outros campos), skip o check. Invalidar `["projetos"]` só se `checkAndUpdate` retornar `true`. Sempre invalidar `["dashboard"]`.
-- `useCreateTask`: adicionar `invalidateQueries(["dashboard"])`
-- `useDeleteTask`: sempre rodar check (tarefa removida pode afetar status). Invalidar `["projetos"]` condicional. Adicionar `["dashboard"]`.
-- `useRestoreTask`: idem ao delete. Adicionar `["dashboard"]`.
-- `usePermanentlyDeleteTask`: adicionar `["dashboard"]`.
-
-**3. `src/hooks/useCosts.ts` — Invalidar dashboard + colunas específicas**
-
-- Substituir `select("*")` por `select("id, tipo_custo, categoria, valor, data, descricao, projeto_id, created_at")`
-- Adicionar `staleTime: 60 * 1000` no `useCosts`
-- Adicionar `qc.invalidateQueries({ queryKey: ["dashboard"] })` nas 3 mutations
-
-**4. `src/hooks/useProjects.ts` — Invalidar dashboard nas mutations**
-
-- Adicionar `qc.invalidateQueries({ queryKey: ["dashboard"] })` em: `useCreateProject`, `useUpdateProject`, `useDeleteProject`, `useRestoreProject`, `usePermanentlyDeleteProject`
+**3. Adicionar `refetchOnMount: false` nos hooks restantes:**
+- `useProjects` e `useDeletedProjects` (`src/hooks/useProjects.ts`)
+- `useTasks` e `useDeletedTasks` (`src/hooks/useTasks.ts`)
+- `useCosts` (`src/hooks/useCosts.ts`)
+- `useUsers` (`src/hooks/useUsers.ts`)
+- `useProfile` (`src/hooks/useProfile.ts`)
 
 ### Impacto esperado
 
 | Cenário | Antes | Depois |
 |---|---|---|
-| Mover "A Fazer" → "Em Andamento" | 6-7 queries | 3 queries |
-| Mover → "Concluído" | 6-7 queries | 5-6 queries |
-| Editar campos sem mudar status | 6-7 queries | 3 queries |
-| Dashboard após qualquer mutation | Desatualizada | Sincronizada |
+| Navegar Dashboard → Projetos → Dashboard (< 2min) | Refetch ao montar | 0 queries (cache reusado) |
+| Navegar entre telas dentro do staleTime | Refetch em background | 0 queries |
+| Profile ao navegar | Refetch a cada mount | 0 queries (cache 5min) |
+| QueryKey instável com `nome` | Cache fragmentado | Cache unificado por `user.id + perfil` |
 
 ### O que NÃO muda
-- Visual do Kanban ou Dashboard
-- Lógica de negócio
-- Estrutura do banco
+- Dados continuam atualizando após mutations (invalidateQueries)
+- staleTime de cada hook mantido
+- Visual e funcionalidade intactos
 

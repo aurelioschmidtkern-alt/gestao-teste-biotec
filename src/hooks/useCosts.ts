@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import { logAudit } from "@/lib/auditLog";
 
 export type Custo = Tables<"custos">;
 
@@ -31,9 +32,16 @@ export function useCreateCost() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (data, vars) => {
       qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "create",
+        entity: "custo",
+        entity_id: data.id,
+        entity_name: data.categoria,
+        metadata: { projeto_id: vars.projeto_id, valor: data.valor },
+      });
     },
   });
 }
@@ -46,9 +54,16 @@ export function useUpdateCost() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (data, vars) => {
       qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "update",
+        entity: "custo",
+        entity_id: vars.id,
+        entity_name: data.categoria,
+        metadata: { projeto_id: vars.projeto_id, valor: data.valor },
+      });
     },
   });
 }
@@ -63,6 +78,12 @@ export function useDeleteCost() {
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["custos", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "delete",
+        entity: "custo",
+        entity_id: vars.id,
+        metadata: { projeto_id: vars.projeto_id },
+      });
     },
   });
 }

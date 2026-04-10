@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { logAudit } from "@/lib/auditLog";
 
 export type Tarefa = Tables<"tarefas">;
 
@@ -83,10 +84,17 @@ export function useCreateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (data, vars) => {
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["my-tasks"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "create",
+        entity: "tarefa",
+        entity_id: data.id,
+        entity_name: data.nome,
+        metadata: { projeto_id: vars.projeto_id },
+      });
     },
   });
 }
@@ -99,7 +107,7 @@ export function useUpdateTask() {
       if (error) throw error;
       return data;
     },
-    onSuccess: async (_, vars) => {
+    onSuccess: async (data, vars) => {
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["my-tasks"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
@@ -110,6 +118,15 @@ export function useUpdateTask() {
           qc.invalidateQueries({ queryKey: ["projetos"] });
         }
       }
+
+      logAudit({
+        action: vars.status ? "status_change" : "update",
+        entity: "tarefa",
+        entity_id: vars.id,
+        entity_name: data.nome,
+        description: vars.status ? `Status → ${vars.status}` : undefined,
+        metadata: { projeto_id: vars.projeto_id, ...(vars.status && { new_status: vars.status }) },
+      });
     },
   });
 }
@@ -134,6 +151,13 @@ export function useDeleteTask() {
       if (statusChanged) {
         qc.invalidateQueries({ queryKey: ["projetos"] });
       }
+
+      logAudit({
+        action: "delete",
+        entity: "tarefa",
+        entity_id: vars.id,
+        metadata: { projeto_id: vars.projeto_id },
+      });
     },
   });
 }
@@ -158,6 +182,13 @@ export function useRestoreTask() {
       if (statusChanged) {
         qc.invalidateQueries({ queryKey: ["projetos"] });
       }
+
+      logAudit({
+        action: "restore",
+        entity: "tarefa",
+        entity_id: vars.id,
+        metadata: { projeto_id: vars.projeto_id },
+      });
     },
   });
 }
@@ -173,6 +204,12 @@ export function usePermanentlyDeleteTask() {
       qc.invalidateQueries({ queryKey: ["tarefas-deleted"] });
       qc.invalidateQueries({ queryKey: ["tarefas", vars.projeto_id] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "permanent_delete",
+        entity: "tarefa",
+        entity_id: vars.id,
+        metadata: { projeto_id: vars.projeto_id },
+      });
     },
   });
 }

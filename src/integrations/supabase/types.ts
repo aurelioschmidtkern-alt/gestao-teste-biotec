@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          entity: string
+          entity_id: string
+          entity_name: string | null
+          id: string
+          metadata: Json
+          profile_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          entity: string
+          entity_id: string
+          entity_name?: string | null
+          id?: string
+          metadata?: Json
+          profile_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          entity?: string
+          entity_id?: string
+          entity_name?: string | null
+          id?: string
+          metadata?: Json
+          profile_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custos: {
         Row: {
           categoria: string

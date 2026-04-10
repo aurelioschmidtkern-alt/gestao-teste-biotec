@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { logAudit } from "@/lib/auditLog";
 
 export type Projeto = Tables<"projetos">;
 
@@ -48,9 +49,15 @@ export function useCreateProject() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["projetos"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "create",
+        entity: "projeto",
+        entity_id: data.id,
+        entity_name: data.nome,
+      });
     },
   });
 }
@@ -63,9 +70,15 @@ export function useUpdateProject() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["projetos"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "update",
+        entity: "projeto",
+        entity_id: data.id,
+        entity_name: data.nome,
+      });
     },
   });
 }
@@ -80,10 +93,15 @@ export function useDeleteProject() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["projetos"] });
       qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "delete",
+        entity: "projeto",
+        entity_id: id,
+      });
     },
   });
 }
@@ -98,10 +116,15 @@ export function useRestoreProject() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["projetos"] });
       qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "restore",
+        entity: "projeto",
+        entity_id: id,
+      });
     },
   });
 }
@@ -113,9 +136,14 @@ export function usePermanentlyDeleteProject() {
       const { error } = await supabase.from("projetos").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["projetos-deleted"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      logAudit({
+        action: "permanent_delete",
+        entity: "projeto",
+        entity_id: id,
+      });
     },
   });
 }
